@@ -7,10 +7,12 @@ import '../../core/models/pet_state.dart';
 import '../../engine/behavior_engine.dart';
 import '../../providers/pet_provider.dart';
 import '../../render/pet_painter.dart';
+import '../../render/dog_animation_controller.dart';
 import '../../render/dog_scene_view.dart';
 import '../../services/ad_service.dart';
 import '../../services/audio_service.dart';
 import '../settings/settings_screen.dart';
+import 'pet_status_hud.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -23,7 +25,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animController;
   final BehaviorEngine _engine = BehaviorEngine();
+  final DogAnimationController _dogAnimationController =
+      DogAnimationController();
+  final ValueNotifier<String> _currentDogClip = ValueNotifier('Idle');
   final DogAudioController _dogAudio = DogAudioController();
+  DogSceneStatus _dogSceneStatus = DogSceneStatus.loading;
   Timer? _behaviorTimer;
   Offset _cursor = const Offset(200, 400);
 
@@ -51,6 +57,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       _cursor,
       learningProfile: LearningProfile.fromPet(pet),
     );
+    final animation = _dogAnimationController.select(
+      pet: pet,
+      behavior: decision.type,
+    );
+    if (_currentDogClip.value != animation.clip) {
+      _currentDogClip.value = animation.clip;
+    }
     _dogAudio.tick(behavior: decision.type, speed: decision.speed);
     if (decision.speed > 0) {
       ref.read(petProvider.notifier).movePet(
@@ -64,6 +77,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   void dispose() {
     _behaviorTimer?.cancel();
     _animController.dispose();
+    _currentDogClip.dispose();
     _dogAudio.dispose();
     super.dispose();
   }
@@ -187,7 +201,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     if (pet.species == PetSpecies.dog) {
       return Stack(
         fit: StackFit.expand,
-        children: [fallback, const DogSceneView()],
+        children: [
+          fallback,
+          DogSceneView(onStatusChanged: _onDogSceneStatusChanged),
+          Positioned(
+            top: 16,
+            left: 16,
+            right: 16,
+            child: ValueListenableBuilder<String>(
+              valueListenable: _currentDogClip,
+              builder: (context, clip, _) => PetStatusHud(
+                pet: pet,
+                animationClip: clip,
+                sceneStatus: _dogSceneStatus,
+              ),
+            ),
+          ),
+        ],
       );
     }
 
@@ -196,6 +226,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       onTapDown: (details) => _cursor = details.localPosition,
       child: fallback,
     );
+  }
+
+  void _onDogSceneStatusChanged(DogSceneStatus status) {
+    if (!mounted || _dogSceneStatus == status) return;
+    setState(() => _dogSceneStatus = status);
   }
 
   Future<void> _openChat() async {

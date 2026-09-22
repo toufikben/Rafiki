@@ -10,9 +10,9 @@ The debug APK was produced successfully and recognized as a valid Android packag
 | Check | Result |
 |---|---:|
 | File type | Android package (APK) |
-| Size | 326,150,881 bytes |
+| Size | 326,168,681 bytes |
 | Approximate size | 311.1 MiB |
-| SHA-256 | `180bba3e4aa3c87948d1440cee96411bbb5962e9a777613bee17e83fa68f07f4` |
+| SHA-256 | `59a0e62d19c0f5893b7aa0c15997377c45eda0d7d982f2f42cd76145fb0799ab` |
 | DEX files | 21 |
 | Native libraries | 32 |
 | ZIP integrity | Passed |

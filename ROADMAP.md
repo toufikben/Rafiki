@@ -48,6 +48,10 @@ The Android-focused bone-weight, PBR material, texture, memory and GPU budget is
 
 **Execution decision:** Continue with Batch 9 while the production-asset gate for Batch 8 proceeds in parallel. Batch 9 is code-complete enough to improve offline privacy, model lifecycle and fallback behavior without depending on a final GLB. Do not block the application roadmap on the art asset, but do not mark the visual release gate green until the rigged GLB, authored clips and Android visual/performance checks are complete.
 
+### Visual integration — Home scene status HUD
+
+**Status: implemented.** The home scene now overlays a live status card above the animal viewport. It shows the current mood from `PetState`, the selected movement clip from `DogAnimationController`, and the 3D scene state (`Loading`, `Prototype ready`, `Fallback active`, or `2D renderer`). `DogSceneView` reports its load state to the HUD while preserving the existing 2D fallback when the GLB is unavailable.
+
 ### Batch 9 — Model management and chat quality
 
 **Status: in progress; core management and quality slice implemented. Priority: high.** Added an explicit settings flow backed by `LocalModelManager` for listing installed models, selecting a local `.litertlm` file with `file_picker`, installing from a user-supplied URL, progress reporting, cancellation, retry, uninstall and orphan cleanup. The UI also shows installed storage usage, active model identity and a Wi-Fi/mobile-data warning. A preflight layer now validates extension, existence, minimum local size and remote HTTP(S) URL/size metadata before installation. The first-run path remains offline and never downloads implicitly. The deterministic fallback and privacy boundary are covered by tests. Chat now detects Arabic/English scripts, bounds native history by recreating the session after 12 turns and exposes a stop action that closes the active generation session.

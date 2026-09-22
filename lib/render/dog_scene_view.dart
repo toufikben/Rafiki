@@ -8,15 +8,22 @@ import 'dog_interaction_motion.dart';
 import 'dog_secondary_motion.dart';
 import '../services/audio_service.dart';
 
+enum DogSceneStatus { loading, ready, error, notApplicable }
+
 /// Android 3D vertical-slice host for the dog asset.
 ///
 /// It deliberately fails closed: until a validated rigged GLB is supplied,
 /// the existing 2D pet renderer remains the production fallback instead of
 /// displaying an unverified placeholder model.
 class DogSceneView extends StatefulWidget {
-  const DogSceneView({super.key, this.assetPath = 'assets/models/dog/dog.glb'});
+  const DogSceneView({
+    super.key,
+    this.assetPath = 'assets/models/dog/dog.glb',
+    this.onStatusChanged,
+  });
 
   final String assetPath;
+  final ValueChanged<DogSceneStatus>? onStatusChanged;
 
   @override
   State<DogSceneView> createState() => _DogSceneViewState();
@@ -38,6 +45,7 @@ class _DogSceneViewState extends State<DogSceneView> {
   }
 
   Future<void> _loadDog() async {
+    widget.onStatusChanged?.call(DogSceneStatus.loading);
     try {
       await Scene.initializeStaticResources();
       const environment = DogEnvironment();
@@ -51,9 +59,15 @@ class _DogSceneViewState extends State<DogSceneView> {
       dog.addComponent(DogAnimationRuntime());
       dog.addComponent(DogSecondaryMotion());
       _scene.add(dog);
-      if (mounted) setState(() => _ready = true);
+      if (mounted) {
+        setState(() => _ready = true);
+        widget.onStatusChanged?.call(DogSceneStatus.ready);
+      }
     } catch (error) {
-      if (mounted) setState(() => _error = error.toString());
+      if (mounted) {
+        setState(() => _error = error.toString());
+        widget.onStatusChanged?.call(DogSceneStatus.error);
+      }
     }
   }
 
