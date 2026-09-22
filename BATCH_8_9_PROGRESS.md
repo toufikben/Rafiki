@@ -1,7 +1,7 @@
 # تقرير تقدم Batch 8 وBatch 9
 
 **المشروع:** Rafiq / Rafiki  
-**حالة الجولة:** تنفيذ ودمج أولي موثق  
+**حالة الجولة:** تنفيذ الجولة الأولى من Batch 9 والتحقق منها
 **نتيجة التحقق:** `flutter analyze` ناجح، و`flutter test -j 1` ناجح بعدد 27 اختبارًا، و`flutter build apk --debug` ناجح.
 
 ## ملخص التنفيذ
@@ -10,11 +10,11 @@
 |---|---|---|---|
 | Batch 8 — runtime animation | إضافة `DogAnimationRuntime` إلى مشهد الكلب؛ يقرأ clips المضمنة في GLB، ينشئ `AnimationClip`، يدعم loop، اختيار clip، وإجراء crossfade بين الحركة الحالية والتالية | منفذ ومحلل ومبني | يحتاج GLB إنتاجيًا يحتوي skeleton وclips فعلية، ثم تحقق بصري وأداء على Android |
 | Batch 8 — prototype safety | عندما لا يحتوي GLB الحالي على animations، يبقى المشغل no-op ولا يعطل عرض النموذج أو fallback | منفذ | لا توجد فجوة وظيفية في النسخة الحالية |
-| Batch 9 — explicit model install | إضافة `LocalModelManager` لتثبيت نموذج `.litertlm` من ملف محلي أو URL | منفذ | إضافة file picker حقيقي بدل المسار النصي |
+| Batch 9 — explicit model install | إضافة `LocalModelManager` وتثبيت نموذج `.litertlm` من file picker أو URL | منفذ | إضافة preflight لحجم النموذج وصلاحيات المنصة |
 | Batch 9 — progress and cancellation | progress callback و`CancelToken` وزر إلغاء أثناء التثبيت | منفذ | اختبار cancellation مع تنزيل حقيقي على Android |
-| Batch 9 — model lifecycle | list installed، uninstall، cleanup orphaned storage | منفذ | عرض active-model identity وstorage usage في الواجهة |
-| Batch 9 — privacy boundary | لا يوجد تنزيل تلقائي؛ التثبيت لا يبدأ إلا بعد ضغط المستخدم؛ fallback يعمل بدون نموذج | منفذ | إضافة رسالة Wi-Fi وتأكيد حجم التخزين قبل التنزيل |
-| Batch 9 — chat quality | fallback حتمي ومختبر، وسياق الحيوان يمر للنموذج عند توفره | منفذ جزئي | history limit، response cancellation، language detection، runtime failure injection |
+| Batch 9 — model lifecycle | list installed، uninstall، cleanup orphaned storage، active model وstorage usage | منفذ | اختبار lifecycle على Android |
+| Batch 9 — privacy boundary | لا يوجد تنزيل تلقائي؛ التثبيت لا يبدأ إلا بعد ضغط المستخدم؛ fallback يعمل بدون نموذج؛ تحذير Wi-Fi/mobile-data | منفذ | تأكيد حجم التخزين قبل التنزيل |
+| Batch 9 — chat quality | fallback حتمي، حد 12 دورة للسجل native، وإلغاء التوليد بزر stop | منفذ جزئي | language detection وruntime failure injection |
 
 ## ملفات الجولة
 
@@ -23,7 +23,7 @@
 | `lib/render/dog_animation_runtime.dart` | ربط clips المضمنة في GLB وتشغيلها مع crossfade |
 | `lib/render/dog_scene_view.dart` | دمج runtime داخل عقدة الكلب |
 | `lib/ai/local_model_manager.dart` | boundary لإدارة تثبيت وحذف وإلغاء نماذج LiteRT-LM |
-| `lib/features/settings/settings_screen.dart` | واجهة صريحة لإدخال مسار محلي أو URL ومتابعة التثبيت والحذف |
+| `lib/features/settings/settings_screen.dart` | واجهة اختيار ملف أو URL، progress، retry، cancel، storage، active model والحذف |
 | `ROADMAP.md` | تحديث حالة Batch 8 و9 وبوابات القبول |
 
 ## بوابة التحقق
@@ -39,4 +39,4 @@
 
 ## القرار الهندسي
 
-لم يتم تضمين نموذج لغة أو GLB إنتاجي افتراضيًا؛ ذلك يحافظ على حجم المستودع وحقوق الترخيص ويمنع التنزيلات غير المقصودة. الكود الحالي يجهز نقاط الدمج ويغلق السلوك الآمن في حال غياب الأصول. الخطوات التالية ذات الأولوية هي إضافة file picker وstorage/active-model UX، ثم اختبار نموذج مرخص فعليًا، وبعدها استبدال GLB prototype بنموذج rigged والتحقق من clips على جهاز Android.
+لم يتم تضمين نموذج لغة أو GLB إنتاجي افتراضيًا؛ ذلك يحافظ على حجم المستودع وحقوق الترخيص ويمنع التنزيلات غير المقصودة. تم الآن إغلاق file picker وstorage/active-model UX وحد السجل وإلغاء التوليد. الخطوات التالية ذات الأولوية هي إضافة preflight لحجم النموذج واختبار نموذج مرخص فعليًا، ثم language detection وruntime failure injection على Android.

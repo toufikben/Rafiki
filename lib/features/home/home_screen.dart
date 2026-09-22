@@ -219,7 +219,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               final reply = await ref.read(petProvider.notifier).chat(text);
               if (!context.mounted) return;
               setSheetState(() {
-                messages.add({'role': 'pet', 'text': reply ?? '...'});
+                if (reply != null && reply.isNotEmpty) {
+                  messages.add({'role': 'pet', 'text': reply});
+                }
                 loading = false;
               });
             }
@@ -278,13 +280,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           ),
                         ),
                         IconButton(
-                          onPressed: loading ? null : send,
+                          onPressed: loading
+                              ? () async {
+                                  await ref
+                                      .read(petProvider.notifier)
+                                      .cancelChat();
+                                  if (context.mounted) {
+                                    setSheetState(() => loading = false);
+                                  }
+                                }
+                              : send,
                           icon: loading
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
+                              ? const Icon(Icons.stop_circle_outlined)
                               : const Icon(Icons.send),
                         ),
                       ],

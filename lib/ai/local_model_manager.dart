@@ -11,6 +11,13 @@ class LocalModelManager {
 
   Future<StorageStats> storageInfo() => FlutterGemma.getStorageInfo();
 
+  String? get activeModelName => FlutterGemma.activeModelSpec?.name;
+
+  String? get activeModelFileName {
+    final files = FlutterGemma.activeModelSpec?.files;
+    return files == null || files.isEmpty ? null : files.first.filename;
+  }
+
   Future<void> installFromFile({
     required String path,
     void Function(int progress)? onProgress,

@@ -10,9 +10,14 @@ import 'chat_fallback_policy.dart';
 /// are large binary assets and should be installed explicitly rather than
 /// silently downloaded on first launch.
 class LocalChatService {
+  LocalChatService({this.maxTurns = 12});
+
+  final int maxTurns;
   InferenceChat? _chat;
   bool _initialized = false;
   bool _modelAvailable = false;
+  int _turns = 0;
+  bool _cancelRequested = false;
 
   bool get isInitialized => _initialized;
   bool get isModelAvailable => _modelAvailable;
@@ -41,24 +46,41 @@ class LocalChatService {
 
   Future<String> send({required PetState pet, required String text}) async {
     if (!_initialized) await init();
+    if (_turns >= maxTurns && _chat != null) {
+      await _resetChat();
+    }
     final chat = _chat;
     if (chat == null) return ChatFallbackPolicy.respond(pet: pet, text: text);
 
     try {
+      _cancelRequested = false;
       final prompt = _contextPrompt(pet, text);
       await chat.addQueryChunk(Message(text: prompt, isUser: true));
       final response = await chat.generateChatResponse();
+      if (_cancelRequested) return '';
       final value = switch (response) {
         TextResponse(:final token) => token.trim(),
         ThinkingResponse(:final content) => content.trim(),
         _ => '',
       };
+      _turns++;
       return value.isEmpty
           ? ChatFallbackPolicy.respond(pet: pet, text: text)
           : value;
     } catch (_) {
+      if (_cancelRequested) return '';
       return ChatFallbackPolicy.respond(pet: pet, text: text);
     }
+  }
+
+  /// Cancels an in-flight native generation by closing its session. The next
+  /// message lazily creates a fresh session, preventing an unbounded history
+  /// or a poisoned native request from blocking the chat UI.
+  Future<void> cancelGeneration() async {
+    _cancelRequested = true;
+    await _closeChat();
+    _initialized = false;
+    _modelAvailable = false;
   }
 
   String _contextPrompt(PetState pet, String text) {
@@ -72,11 +94,23 @@ class LocalChatService {
   }
 
   Future<void> dispose() async {
+    await _closeChat();
+    _turns = 0;
+    _initialized = false;
+  }
+
+  Future<void> _resetChat() async {
+    await _closeChat();
+    _turns = 0;
+    _initialized = false;
+    await init();
+  }
+
+  Future<void> _closeChat() async {
     try {
       await _chat?.close();
     } catch (_) {}
     _chat = null;
     _modelAvailable = false;
-    _initialized = false;
   }
 }

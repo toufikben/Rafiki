@@ -27,6 +27,8 @@ class AIService {
     return _localChat.send(pet: pet, text: text);
   }
 
+  Future<void> cancelChat() => _localChat.cancelGeneration();
+
   Future<String> generateReaction({
     required PetState pet,
     required String context,

@@ -1,5 +1,7 @@
 import 'dart:io' show Platform;
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../ai/local_model_manager.dart';
 import '../../data/database.dart';
@@ -89,8 +91,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final pathController = TextEditingController();
     final urlController = TextEditingController();
     var installed = <String>[];
+    PlatformFile? selectedFile;
+    StorageStats? storage;
+    Future<void> Function()? retryAction;
     try {
       installed = await _modelManager.listInstalled();
+    } catch (_) {}
+    try {
+      storage = await _modelManager.storageInfo();
     } catch (_) {}
     if (!mounted) {
       pathController.dispose();
@@ -110,8 +118,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Future<void> refresh() async {
                 try {
                   final models = await _modelManager.listInstalled();
+                  final info = await _modelManager.storageInfo();
                   if (context.mounted) {
-                    setDialogState(() => installed = models);
+                    setDialogState(() {
+                      installed = models;
+                      storage = info;
+                    });
                   }
                 } catch (e) {
                   if (context.mounted) setDialogState(() => error = '$e');
@@ -119,6 +131,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               }
 
               Future<void> install(Future<void> Function() action) async {
+                retryAction = action;
                 setDialogState(() {
                   busy = true;
                   progress = 0;
@@ -146,12 +159,37 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         const Text(
                           'Models stay on this device. Choose an explicit local file or URL to install.',
                         ),
+                        if (storage != null) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            'Storage: ${storage!.totalSizeMB.toStringAsFixed(1)} MB in ${storage!.totalFiles} file(s)',
+                          ),
+                        ],
+                        Text(
+                          'Active model: ${_modelManager.activeModelName ?? 'none'}',
+                        ),
                         const SizedBox(height: 12),
-                        TextField(
-                          controller: pathController,
-                          onChanged: (_) => setDialogState(() {}),
-                          decoration: const InputDecoration(
-                            labelText: 'Local .litertlm path',
+                        OutlinedButton.icon(
+                          onPressed: busy
+                              ? null
+                              : () async {
+                                    final files = await FilePicker.pickFiles(
+                                      type: FileType.custom,
+                                      allowedExtensions: const ['litertlm'],
+                                    );
+                                  final file = files.isEmpty ? null : files.single;
+                                  if (file?.path != null && context.mounted) {
+                                    setDialogState(() {
+                                      selectedFile = file;
+                                      pathController.text = file!.path!;
+                                    });
+                                  }
+                                },
+                          icon: const Icon(Icons.folder_open),
+                          label: Text(
+                            selectedFile == null
+                                ? 'Choose local .litertlm file'
+                                : selectedFile!.name,
                           ),
                         ),
                         ElevatedButton(
@@ -164,7 +202,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                         () => progress = value,
                                       ),
                                     ),
-                                  ),
+                            ),
                           child: const Text('Install local file'),
                         ),
                         TextField(
@@ -188,6 +226,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                   ),
                           child: const Text('Download and install'),
                         ),
+                        if (urlController.text.trim().isNotEmpty)
+                          const Text(
+                            'Large models may use significant storage and mobile data. Wi-Fi is recommended.',
+                          ),
                         if (busy) ...[
                           LinearProgressIndicator(value: progress / 100),
                           Text('Progress: $progress%'),
@@ -197,7 +239,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           ),
                         ],
                         if (error != null)
-                          Text(error!, style: const TextStyle(color: Colors.red)),
+                          ...[
+                            Text(error!, style: const TextStyle(color: Colors.red)),
+                            if (retryAction != null)
+                              TextButton(
+                                onPressed: busy ? null : () => install(retryAction!),
+                                child: const Text('Retry'),
+                              ),
+                          ],
                         const SizedBox(height: 8),
                         const Text('Installed models'),
                         if (installed.isEmpty)

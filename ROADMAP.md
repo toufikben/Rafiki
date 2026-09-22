@@ -50,9 +50,9 @@ The Android-focused bone-weight, PBR material, texture, memory and GPU budget is
 
 ### Batch 9 — Model management and chat quality
 
-**Status: in progress. Priority: high.** Added an explicit settings flow backed by `LocalModelManager` for listing installed models, installing a user-selected `.litertlm` file or URL, progress reporting, cancellation, uninstall and orphan cleanup. The first-run path remains offline and never downloads implicitly. The deterministic fallback and privacy boundary are already covered by tests.
+**Status: in progress; first management slice implemented. Priority: high.** Added an explicit settings flow backed by `LocalModelManager` for listing installed models, selecting a local `.litertlm` file with `file_picker`, installing from a user-supplied URL, progress reporting, cancellation, retry, uninstall and orphan cleanup. The UI also shows installed storage usage, active model identity and a Wi-Fi/mobile-data warning. The first-run path remains offline and never downloads implicitly. The deterministic fallback and privacy boundary are already covered by tests. Chat now bounds native history by recreating the session after 12 turns and exposes a stop action that closes the active generation session.
 
-**Remaining work:** add a platform file picker instead of a manually entered path, display storage usage and active-model identity, add retry and Wi-Fi recommendation UX, cap conversation history, support response cancellation and language detection, and perform model-runtime failure injection on Android.
+**Remaining work:** add model-size preflight before downloads, improve platform-specific picker permissions and error copy, add explicit language detection, and perform model-runtime failure injection on Android with a real installed model.
 
 **Acceptance criteria:** chat works offline with no model, can switch to a user-installed model, never blocks the UI, handles model failure gracefully, and does not download without an explicit action.
 
@@ -96,7 +96,7 @@ The Android-focused bone-weight, PBR material, texture, memory and GPU budget is
 
 ## Latest verification
 
-The repository passed `flutter analyze` with no issues, all 27 automated tests passed sequentially, and `flutter build apk --debug` produced `build/app/outputs/flutter-apk/app-debug.apk` (307 MB in the Batch 8/9 build). The verification environment uses Flutter 3.47.5, Dart 3.13.4, Android SDK 36, NDK 28.2.13676358 and JDK 21. The APK is still a development artifact only; physical-device visual and performance verification is still required.
+The repository passed `flutter analyze` with no issues, all 27 automated tests passed sequentially, and `flutter build apk --debug` produced `build/app/outputs/flutter-apk/app-debug.apk` (312 MB in the Batch 9 build). The verification environment uses Flutter 3.47.5, Dart 3.13.4, Android SDK 36, NDK 28.2.13676358 and JDK 21. The APK is still a development artifact only; physical-device visual and performance verification is still required.
 
 ## Release gates
 

@@ -163,6 +163,8 @@ class PetNotifier extends StateNotifier<PetState?> {
     return _ai.chat(pet: pet, text: text.trim());
   }
 
+  Future<void> cancelChat() => _ai.cancelChat();
+
   Future<void> _learn(String action, double reward) async {
     final pet = state;
     if (pet == null) return;
