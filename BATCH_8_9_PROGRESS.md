@@ -1,8 +1,8 @@
 # تقرير تقدم Batch 8 وBatch 9
 
 **المشروع:** Rafiq / Rafiki  
-**حالة الجولة:** تنفيذ الجولة الأولى من Batch 9 والتحقق منها
-**نتيجة التحقق:** `flutter analyze` ناجح، و`flutter test -j 1` ناجح بعدد 27 اختبارًا، و`flutter build apk --debug` ناجح.
+**حالة الجولة:** إغلاق language detection وmodel preflight ضمن Batch 9
+**نتيجة التحقق:** `flutter analyze` ناجح، و`flutter test -j 1` ناجح بعدد 32 اختبارًا، و`flutter build apk --debug` ناجح.
 
 ## ملخص التنفيذ
 
@@ -14,7 +14,8 @@
 | Batch 9 — progress and cancellation | progress callback و`CancelToken` وزر إلغاء أثناء التثبيت | منفذ | اختبار cancellation مع تنزيل حقيقي على Android |
 | Batch 9 — model lifecycle | list installed، uninstall، cleanup orphaned storage، active model وstorage usage | منفذ | اختبار lifecycle على Android |
 | Batch 9 — privacy boundary | لا يوجد تنزيل تلقائي؛ التثبيت لا يبدأ إلا بعد ضغط المستخدم؛ fallback يعمل بدون نموذج؛ تحذير Wi-Fi/mobile-data | منفذ | تأكيد حجم التخزين قبل التنزيل |
-| Batch 9 — chat quality | fallback حتمي، حد 12 دورة للسجل native، وإلغاء التوليد بزر stop | منفذ جزئي | language detection وruntime failure injection |
+| Batch 9 — chat quality | fallback حتمي، كشف العربية/الإنجليزية، حد 12 دورة للسجل native، وإلغاء التوليد بزر stop | منفذ جزئي | runtime failure injection |
+| Batch 9 — model preflight | تحقق extension، وجود الملف، minimum size، وصحة URL وHEAD metadata قبل التثبيت | منفذ | شاشة تأكيد غنية للحجم واختبار Android فعلي |
 
 ## ملفات الجولة
 
@@ -23,6 +24,9 @@
 | `lib/render/dog_animation_runtime.dart` | ربط clips المضمنة في GLB وتشغيلها مع crossfade |
 | `lib/render/dog_scene_view.dart` | دمج runtime داخل عقدة الكلب |
 | `lib/ai/local_model_manager.dart` | boundary لإدارة تثبيت وحذف وإلغاء نماذج LiteRT-LM |
+| `lib/ai/model_install_preflight.dart` | فحص المصادر المحلية والشبكية قبل أي تثبيت |
+| `lib/ai/chat_language.dart` | كشف العربية والإنجليزية دون شبكة |
+| `test/batch9_quality_test.dart` | اختبارات كشف اللغة وpreflight للملفات والروابط |
 | `lib/features/settings/settings_screen.dart` | واجهة اختيار ملف أو URL، progress، retry، cancel، storage، active model والحذف |
 | `ROADMAP.md` | تحديث حالة Batch 8 و9 وبوابات القبول |
 
@@ -31,7 +35,7 @@
 | الفحص | النتيجة |
 |---|---|
 | Flutter analyze | ناجح — لا توجد issues |
-| Flutter tests | ناجح — 27 من 27 |
+| Flutter tests | ناجح — 32 من 32 |
 | Debug APK | ناجح — `build/app/outputs/flutter-apk/app-debug.apk` |
 | اختبار GLB إنتاجي rigged | لم يُنفذ — الأصل الحالي prototype ثابت |
 | اختبار تنزيل نموذج فعلي | لم يُنفذ — يتطلب URL/ملف نموذج مرخص وحجمًا كبيرًا |
@@ -39,4 +43,4 @@
 
 ## القرار الهندسي
 
-لم يتم تضمين نموذج لغة أو GLB إنتاجي افتراضيًا؛ ذلك يحافظ على حجم المستودع وحقوق الترخيص ويمنع التنزيلات غير المقصودة. تم الآن إغلاق file picker وstorage/active-model UX وحد السجل وإلغاء التوليد. الخطوات التالية ذات الأولوية هي إضافة preflight لحجم النموذج واختبار نموذج مرخص فعليًا، ثم language detection وruntime failure injection على Android.
+لم يتم تضمين نموذج لغة أو GLB إنتاجي افتراضيًا؛ ذلك يحافظ على حجم المستودع وحقوق الترخيص ويمنع التنزيلات غير المقصودة. تم الآن إغلاق file picker وstorage/active-model UX وحد السجل وإلغاء التوليد وكشف العربية/الإنجليزية وpreflight الأساسي للمصادر. الخطوات التالية ذات الأولوية هي شاشة تأكيد غنية لحجم النموذج، ثم اختبار نموذج مرخص فعليًا وruntime failure injection على Android.

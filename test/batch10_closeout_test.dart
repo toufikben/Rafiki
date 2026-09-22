@@ -62,7 +62,7 @@ void main() {
 
     test('responds locally when the pet is hungry', () {
       pet.hunger = 0.1;
-      final response = ChatFallbackPolicy.respond(pet: pet, text: 'hello');
+      final response = ChatFallbackPolicy.respond(pet: pet, text: 'مرحبا');
       expect(response, contains('الجوع'));
       expect(response, contains('Rafiq'));
     });
@@ -70,7 +70,7 @@ void main() {
     test('recognizes Arabic and English water requests', () {
       expect(
         ChatFallbackPolicy.respond(pet: pet, text: 'water please'),
-        contains('الماء'),
+        contains('needs water'),
       );
       expect(
         ChatFallbackPolicy.respond(pet: pet, text: 'أريد ماء'),

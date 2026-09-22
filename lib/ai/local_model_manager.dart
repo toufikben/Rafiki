@@ -1,5 +1,7 @@
 import 'package:flutter_gemma/flutter_gemma.dart';
 
+import 'model_install_preflight.dart';
+
 /// App-facing model management boundary for Batch 9.
 ///
 /// No method downloads anything implicitly. Installation only happens after an
@@ -22,6 +24,8 @@ class LocalModelManager {
     required String path,
     void Function(int progress)? onProgress,
   }) async {
+    final preflight = await ModelInstallPreflight.localFile(path);
+    preflight.throwIfInvalid();
     await _install(
       FlutterGemma.installModel(
         modelType: ModelType.general,
@@ -36,6 +40,8 @@ class LocalModelManager {
     String? token,
     void Function(int progress)? onProgress,
   }) async {
+    final preflight = await ModelInstallPreflight.networkUrl(url);
+    preflight.throwIfInvalid();
     await _install(
       FlutterGemma.installModel(
         modelType: ModelType.general,

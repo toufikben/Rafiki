@@ -1,6 +1,7 @@
 import 'package:flutter_gemma/flutter_gemma.dart';
 
 import '../core/models/pet_state.dart';
+import 'chat_language.dart';
 import 'chat_fallback_policy.dart';
 
 /// On-device chat adapter backed by a small LiteRT-LM model when installed.
@@ -84,12 +85,14 @@ class LocalChatService {
   }
 
   String _contextPrompt(PetState pet, String text) {
+    final language = ChatLanguageDetector.detect(text).code;
     return 'Pet=${pet.name}; species=${pet.species}; '
         'hunger=${pet.hunger.toStringAsFixed(2)}; '
         'energy=${pet.energy.toStringAsFixed(2)}; '
         'hydration=${pet.hydration.toStringAsFixed(2)}; '
         'happiness=${pet.happiness.toStringAsFixed(2)}; '
-        'stress=${pet.stress.toStringAsFixed(2)}; mood=${pet.mood}. '
+        'stress=${pet.stress.toStringAsFixed(2)}; mood=${pet.mood}; '
+        'reply_language=$language. '
         'User says: $text';
   }
 
