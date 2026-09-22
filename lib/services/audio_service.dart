@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 
 import '../core/models/behavior_type.dart';
+import 'audio_cooldown_policy.dart';
 
 /// Central audio mixer for the virtual pet.
 ///
@@ -16,11 +17,7 @@ class AudioService {
   static bool _enabled = true;
   static bool _initialized = false;
   static String? _bodyLoop;
-  static DateTime _lastStep = DateTime.fromMillisecondsSinceEpoch(0);
-  static DateTime _lastBark = DateTime.fromMillisecondsSinceEpoch(0);
-  static DateTime _lastWhine = DateTime.fromMillisecondsSinceEpoch(0);
-  static DateTime _lastTouch = DateTime.fromMillisecondsSinceEpoch(0);
-  static DateTime _lastTouchMove = DateTime.fromMillisecondsSinceEpoch(0);
+  static final AudioCooldownPolicy _cooldowns = AudioCooldownPolicy();
 
   static const _minStepGap = Duration(milliseconds: 360);
   static const _minBarkGap = Duration(seconds: 3);
@@ -89,25 +86,19 @@ class AudioService {
   static Future<void> playHappy() => _playOneShot('sounds/happy.mp3');
 
   static Future<void> playDogBark() async {
-    final now = DateTime.now();
-    if (now.difference(_lastBark) < _minBarkGap) return;
-    _lastBark = now;
+    if (!_cooldowns.allow('bark', _minBarkGap)) return;
     await _playOneShot('sounds/dog_bark.mp3', volume: 0.82);
   }
 
   /// A quieter bark used for a direct tap on the 3D pet.
   static Future<void> playDogTouch() async {
-    final now = DateTime.now();
-    if (now.difference(_lastTouch) < _minTouchGap) return;
-    _lastTouch = now;
+    if (!_cooldowns.allow('touch', _minTouchGap)) return;
     await _playOneShot('sounds/dog_bark.mp3', volume: 0.42);
   }
 
   /// A restrained movement cue while the user drags across the 3D pet.
   static Future<void> playDogTouchMove() async {
-    final now = DateTime.now();
-    if (now.difference(_lastTouchMove) < _minTouchMoveGap) return;
-    _lastTouchMove = now;
+    if (!_cooldowns.allow('touch_move', _minTouchMoveGap)) return;
     try {
       await _steps.setVolume(0.12);
       await _steps.play(AssetSource('sounds/dog_steps.mp3'));
@@ -115,19 +106,15 @@ class AudioService {
   }
 
   static Future<void> playDogWhine() async {
-    final now = DateTime.now();
-    if (now.difference(_lastWhine) < _minWhineGap) return;
-    _lastWhine = now;
+    if (!_cooldowns.allow('whine', _minWhineGap)) return;
     await _playOneShot('sounds/dog_whine.mp3', volume: 0.55);
   }
 
   static Future<void> playDogSteps({required bool running}) async {
-    final now = DateTime.now();
     final gap = running
         ? const Duration(milliseconds: 230)
         : _minStepGap;
-    if (now.difference(_lastStep) < gap) return;
-    _lastStep = now;
+    if (!_cooldowns.allow('steps', gap)) return;
     try {
       await _steps.setVolume(running ? 0.45 : 0.28);
       await _steps.play(AssetSource('sounds/dog_steps.mp3'));
@@ -181,6 +168,7 @@ class AudioService {
       _steps.stop(),
     ]);
     _bodyLoop = null;
+    _cooldowns.reset();
   }
 
   static Future<void> dispose() async {

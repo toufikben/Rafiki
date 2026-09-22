@@ -36,11 +36,11 @@ This document records the implementation state at the time of the GitHub upload.
 
 ### Batch 8 — Final model and animation production
 
-**Status: in progress. Priority: highest.** A self-contained original stylized dog GLB is now committed and loads through `DogSceneView`. It contains 21 named nodes, materials, a ground-aligned scale, procedural breathing support, touch-driven placement, and interactive audio hooks. It is a functional 3D vertical slice, but it does not yet contain a production skeleton or authored locomotion/action clips.
+**Status: in progress. Priority: highest.** A self-contained original stylized dog GLB is now committed and loads through `DogSceneView`. It contains 21 named nodes, materials, a ground-aligned scale, procedural breathing support, touch-driven placement, and interactive audio hooks. A testable `DogAnimationController` and manifest contract validator have now been added so behavior-to-clip mapping and required rig names can be verified before the final asset arrives. The committed GLB remains a functional 3D vertical slice and does not yet contain a production skeleton or authored locomotion/action clips.
 
 **Remaining work:** replace or extend the prototype with a licensed production-quality dog based on the approved visual references; add a named skeleton, optimized texture maps, and authored clips `Idle`, `Walk`, `Run`, `Play`, `Sleep`, `Eat`, `Drink`, `Happy`, and `Sad`; then validate animation blending and frame time on Android hardware.
 
-**Current acceptance:** GLB loading, ground placement, environment rendering, fallback behavior, static material rendering, touch interaction, audio callbacks, `flutter analyze`, automated tests and debug APK builds are verified. Android visual QA, authored locomotion and final visual matching remain pending.
+**Current acceptance:** GLB loading, ground placement, environment rendering, fallback behavior, static material rendering, touch interaction, audio callbacks, the clip-selection contract, and manifest-name validation are implemented. Flutter analysis, automated tests and debug APK builds are verified in the current environment. Android visual QA, authored locomotion and final visual matching remain pending.
 
 The detailed production sequence, rig contract, animation list, validation gates and commit plan are documented in [`FINAL_3D_MODEL_ANIMATION_PLAN.md`](FINAL_3D_MODEL_ANIMATION_PLAN.md).
 
@@ -58,7 +58,7 @@ The Android-focused bone-weight, PBR material, texture, memory and GPU budget is
 
 ### Batch 10 — Behavioral validation and performance
 
-**Priority: high.** Add deterministic tests for vital coupling, learning convergence, mood transitions, audio cooldowns, model fallback and state migration. Profile CPU, memory, GPU frame time, audio latency and battery use on low-, mid- and high-tier Android devices.
+**Priority: high; deterministic closeout implemented.** Deterministic tests now cover vital coupling, normalized bounds, mood priority, learning serialization, corrupt-profile fallback, bounded convergence, animation transitions, the GLB contract manifest, audio cooldown windows, offline chat fallback behavior, and Isar save/reopen/delete persistence. Remaining work is CPU, memory, GPU frame-time, audio-latency and battery profiling on representative Android devices, plus model-runtime failure injection on a device with an installed model.
 
 **Acceptance criteria:** no critical jank in the home loop, bounded memory when a local model is loaded, predictable behavior under time jumps, and documented quality/performance budgets.
 
@@ -92,7 +92,7 @@ The Android-focused bone-weight, PBR material, texture, memory and GPU budget is
 
 ## Latest verification
 
-The repository passed `flutter analyze` with no issues, all 6 automated tests passed, and `build/app/outputs/flutter-apk/app-debug.apk` was produced successfully after the touch and interactive-audio changes. The latest GitHub commit is `697970c` (`Add interactive dog touch audio`). The debug APK is a development artifact only; physical-device visual and performance verification is still required.
+The repository passed `flutter analyze` with no issues, all 27 automated tests passed sequentially, and `flutter build apk --debug` produced `build/app/outputs/flutter-apk/app-debug.apk` (279 MB). The verification environment uses Flutter 3.47.5, Dart 3.13.4, Android SDK 36, NDK 28.2.13676358 and JDK 21. The APK is still a development artifact only; physical-device visual and performance verification is still required.
 
 ## Release gates
 

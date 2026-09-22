@@ -15,13 +15,15 @@ class Database {
 
   static bool get isReady => _initialized;
 
-  static Future<void> init() async {
+  static Future<void> init({String? directory, String name = 'rafiq_db'}) async {
     if (_initialized) return;
-    final dir = await getApplicationDocumentsDirectory();
+    final dir = directory == null
+        ? await getApplicationDocumentsDirectory()
+        : null;
     _isar = await Isar.open(
       [PetStateSchema],
-      directory: dir.path,
-      name: 'rafiq_db',
+      directory: directory ?? dir!.path,
+      name: name,
     );
     _initialized = true;
   }
@@ -43,5 +45,16 @@ class Database {
     await _isar!.writeTxn(() async {
       await _isar!.petStates.clear();
     });
+  }
+
+  /// Closes the store so integration tests can reopen it from a clean path.
+  /// Production callers normally keep the singleton open for the app lifetime.
+  static Future<void> close({bool deleteFromDisk = false}) async {
+    final instance = _isar;
+    _isar = null;
+    _initialized = false;
+    if (instance != null) {
+      await instance.close(deleteFromDisk: deleteFromDisk);
+    }
   }
 }

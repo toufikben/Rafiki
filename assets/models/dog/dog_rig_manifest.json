@@ -4,6 +4,8 @@
   "reference": "reference_images/reference_2.jpg",
   "runtime": "flutter_scene",
   "target_platform": "android",
+  "asset_status": "prototype_static_glb",
+  "runtime_note": "The committed GLB is a static prototype. The authored clips below are the Batch 8 production contract and are not claimed to exist in the prototype asset.",
   "mesh_budget": {
     "target_triangles": 12000,
     "maximum_triangles": 18000,
@@ -22,14 +24,12 @@
     {"name": "Idle", "loop": true, "crossfade_ms": 220},
     {"name": "Walk", "loop": true, "crossfade_ms": 180},
     {"name": "Run", "loop": true, "crossfade_ms": 140},
-    {"name": "Sit", "loop": false, "crossfade_ms": 180},
-    {"name": "Stand", "loop": false, "crossfade_ms": 180},
+    {"name": "Play", "loop": false, "crossfade_ms": 150},
     {"name": "Sleep", "loop": true, "crossfade_ms": 300},
     {"name": "Eat", "loop": true, "crossfade_ms": 160},
-    {"name": "Sniff", "loop": false, "crossfade_ms": 160},
-    {"name": "PlayBow", "loop": false, "crossfade_ms": 150},
-    {"name": "HappyJump", "loop": false, "crossfade_ms": 120},
-    {"name": "SadHeadDown", "loop": true, "crossfade_ms": 240}
+    {"name": "Drink", "loop": true, "crossfade_ms": 160},
+    {"name": "Happy", "loop": false, "crossfade_ms": 120},
+    {"name": "Sad", "loop": false, "crossfade_ms": 240}
   ],
   "secondary_motion": {
     "ears": "spring_damped",

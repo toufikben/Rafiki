@@ -1,6 +1,7 @@
 import 'package:flutter_gemma/flutter_gemma.dart';
 
 import '../core/models/pet_state.dart';
+import 'chat_fallback_policy.dart';
 
 /// On-device chat adapter backed by a small LiteRT-LM model when installed.
 ///
@@ -41,7 +42,7 @@ class LocalChatService {
   Future<String> send({required PetState pet, required String text}) async {
     if (!_initialized) await init();
     final chat = _chat;
-    if (chat == null) return _fallback(pet, text);
+    if (chat == null) return ChatFallbackPolicy.respond(pet: pet, text: text);
 
     try {
       final prompt = _contextPrompt(pet, text);
@@ -52,9 +53,11 @@ class LocalChatService {
         ThinkingResponse(:final content) => content.trim(),
         _ => '',
       };
-      return value.isEmpty ? _fallback(pet, text) : value;
+      return value.isEmpty
+          ? ChatFallbackPolicy.respond(pet: pet, text: text)
+          : value;
     } catch (_) {
-      return _fallback(pet, text);
+      return ChatFallbackPolicy.respond(pet: pet, text: text);
     }
   }
 
@@ -66,26 +69,6 @@ class LocalChatService {
         'happiness=${pet.happiness.toStringAsFixed(2)}; '
         'stress=${pet.stress.toStringAsFixed(2)}; mood=${pet.mood}. '
         'User says: $text';
-  }
-
-  String _fallback(PetState pet, String text) {
-    final lower = text.toLowerCase();
-    if (pet.hunger < 0.22 || lower.contains('hungry') || text.contains('جوع')) {
-      return '${pet.name} يشعر بالجوع؛ وجبة صغيرة ستجعله أكثر راحة.';
-    }
-    if (pet.hydration < 0.22 || lower.contains('water') || text.contains('ماء')) {
-      return '${pet.name} يحتاج إلى الماء الآن.';
-    }
-    if (pet.energy < 0.20 || text.contains('نوم')) {
-      return '${pet.name} يبدو متعباً ويحتاج إلى الراحة.';
-    }
-    if (pet.stress > 0.72) {
-      return '${pet.name} متوتر قليلاً؛ تحدث معه بهدوء ومداعبة لطيفة قد تساعد.';
-    }
-    if (lower.contains('hello') || text.contains('مرحبا') || text.contains('أهلا')) {
-      return 'مرحباً! ${pet.name} سعيد بوجودك بالقرب منه.';
-    }
-    return '${pet.name} يسمعك ويقترب منك باهتمام.';
   }
 
   Future<void> dispose() async {
