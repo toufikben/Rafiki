@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_scene/scene.dart';
 import 'package:vector_math/vector_math.dart' as vm;
 
@@ -20,10 +21,12 @@ class DogSceneView extends StatefulWidget {
     super.key,
     this.assetPath = 'assets/models/dog/dog.glb',
     this.onStatusChanged,
+    this.requestedAnimation,
   });
 
   final String assetPath;
   final ValueChanged<DogSceneStatus>? onStatusChanged;
+  final ValueListenable<String>? requestedAnimation;
 
   @override
   State<DogSceneView> createState() => _DogSceneViewState();
@@ -37,11 +40,23 @@ class _DogSceneViewState extends State<DogSceneView> {
   );
   bool _ready = false;
   String? _error;
+  DogAnimationRuntime? _animationRuntime;
 
   @override
   void initState() {
     super.initState();
+    widget.requestedAnimation?.addListener(_applyRequestedAnimation);
     _loadDog();
+  }
+
+  @override
+  void didUpdateWidget(covariant DogSceneView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.requestedAnimation != widget.requestedAnimation) {
+      oldWidget.requestedAnimation?.removeListener(_applyRequestedAnimation);
+      widget.requestedAnimation?.addListener(_applyRequestedAnimation);
+      _applyRequestedAnimation();
+    }
   }
 
   Future<void> _loadDog() async {
@@ -56,9 +71,11 @@ class _DogSceneViewState extends State<DogSceneView> {
       }
       final dog = await Node.fromGlbAsset(widget.assetPath);
       dog.addComponent(_interaction);
-      dog.addComponent(DogAnimationRuntime());
+      _animationRuntime = DogAnimationRuntime();
+      dog.addComponent(_animationRuntime!);
       dog.addComponent(DogSecondaryMotion());
       _scene.add(dog);
+      _applyRequestedAnimation();
       if (mounted) {
         setState(() => _ready = true);
         widget.onStatusChanged?.call(DogSceneStatus.ready);
@@ -69,6 +86,19 @@ class _DogSceneViewState extends State<DogSceneView> {
         widget.onStatusChanged?.call(DogSceneStatus.error);
       }
     }
+  }
+
+  void _applyRequestedAnimation() {
+    final name = widget.requestedAnimation?.value;
+    if (name == null) return;
+    _animationRuntime?.select(name);
+  }
+
+  @override
+  void dispose() {
+    widget.requestedAnimation?.removeListener(_applyRequestedAnimation);
+    _animationRuntime = null;
+    super.dispose();
   }
 
   @override

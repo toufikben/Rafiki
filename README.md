@@ -17,6 +17,7 @@ Rafiq is an Android-first virtual pet companion built with Flutter. The project 
 | Interactive dog audio mixer | Implemented |
 | 3D scene, secondary motion and environment path | Implemented and fail-safe |
 | Live mood, movement and 3D scene status HUD | Implemented above the animal viewport |
+| Manual mood and animation test controls | Implemented with automatic-loop reset |
 | LocalLLM engine integration | Implemented with LiteRT-LM adapter |
 | Local text chat UI | Implemented with offline fallback |
 | Final dog GLB model and authored animation clips | Pending |

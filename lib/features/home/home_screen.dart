@@ -12,6 +12,7 @@ import '../../render/dog_scene_view.dart';
 import '../../services/ad_service.dart';
 import '../../services/audio_service.dart';
 import '../settings/settings_screen.dart';
+import 'manual_test_controls.dart';
 import 'pet_status_hud.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -30,6 +31,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   final ValueNotifier<String> _currentDogClip = ValueNotifier('Idle');
   final DogAudioController _dogAudio = DogAudioController();
   DogSceneStatus _dogSceneStatus = DogSceneStatus.loading;
+  bool _manualControlsEnabled = false;
+  String _manualMood = 'neutral';
+  String _manualClip = 'Idle';
   Timer? _behaviorTimer;
   Offset _cursor = const Offset(200, 400);
 
@@ -57,12 +61,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       _cursor,
       learningProfile: LearningProfile.fromPet(pet),
     );
-    final animation = _dogAnimationController.select(
-      pet: pet,
-      behavior: decision.type,
-    );
-    if (_currentDogClip.value != animation.clip) {
-      _currentDogClip.value = animation.clip;
+    if (_manualControlsEnabled) {
+      pet.mood = _manualMood;
+      pet.currentBehavior = _manualClip.toLowerCase();
+      if (_currentDogClip.value != _manualClip) {
+        _currentDogClip.value = _manualClip;
+      }
+    } else {
+      final animation = _dogAnimationController.select(
+        pet: pet,
+        behavior: decision.type,
+      );
+      if (_currentDogClip.value != animation.clip) {
+        _currentDogClip.value = animation.clip;
+      }
     }
     _dogAudio.tick(behavior: decision.type, speed: decision.speed);
     if (decision.speed > 0) {
@@ -95,6 +107,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             icon: const Icon(Icons.chat_bubble_outline),
             tooltip: 'Chat locally',
             onPressed: _openChat,
+          ),
+          IconButton(
+            icon: const Icon(Icons.tune),
+            tooltip: 'Manual test controls',
+            onPressed: _showManualControls,
           ),
           IconButton(
             icon: const Icon(Icons.settings),
@@ -203,7 +220,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         fit: StackFit.expand,
         children: [
           fallback,
-          DogSceneView(onStatusChanged: _onDogSceneStatusChanged),
+          DogSceneView(
+            onStatusChanged: _onDogSceneStatusChanged,
+            requestedAnimation: _currentDogClip,
+          ),
           Positioned(
             top: 16,
             left: 16,
@@ -231,6 +251,45 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   void _onDogSceneStatusChanged(DogSceneStatus status) {
     if (!mounted || _dogSceneStatus == status) return;
     setState(() => _dogSceneStatus = status);
+  }
+
+  Future<void> _showManualControls() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, setSheetState) => ManualTestControls(
+          enabled: _manualControlsEnabled,
+          selectedMood: _manualMood,
+          selectedClip: _manualClip,
+          onToggle: (enabled) {
+            setState(() => _manualControlsEnabled = enabled);
+            setSheetState(() {});
+          },
+          onMoodSelected: (mood) {
+            setState(() => _manualMood = mood);
+            setSheetState(() {});
+          },
+          onClipSelected: (clip) {
+            setState(() {
+              _manualClip = clip;
+              _manualControlsEnabled = true;
+            });
+            _currentDogClip.value = clip;
+            setSheetState(() {});
+          },
+          onReset: () {
+            setState(() {
+              _manualControlsEnabled = false;
+              _manualMood = 'neutral';
+              _manualClip = 'Idle';
+            });
+            _currentDogClip.value = 'Idle';
+            Navigator.pop(sheetContext);
+          },
+        ),
+      ),
+    );
   }
 
   Future<void> _openChat() async {
