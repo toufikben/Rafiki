@@ -46,6 +46,8 @@ The detailed production sequence, rig contract, animation list, validation gates
 
 The Android-focused bone-weight, PBR material, texture, memory and GPU budget is documented in [`3D_RIG_MATERIALS_ANDROID_SPEC.md`](3D_RIG_MATERIALS_ANDROID_SPEC.md).
 
+**Execution decision:** Continue with Batch 9 while the production-asset gate for Batch 8 proceeds in parallel. Batch 9 is code-complete enough to improve offline privacy, model lifecycle and fallback behavior without depending on a final GLB. Do not block the application roadmap on the art asset, but do not mark the visual release gate green until the rigged GLB, authored clips and Android visual/performance checks are complete.
+
 ### Batch 9 — Model management and chat quality
 
 **Status: in progress. Priority: high.** Added an explicit settings flow backed by `LocalModelManager` for listing installed models, installing a user-selected `.litertlm` file or URL, progress reporting, cancellation, uninstall and orphan cleanup. The first-run path remains offline and never downloads implicitly. The deterministic fallback and privacy boundary are already covered by tests.
