@@ -1,6 +1,6 @@
 # Rafiq roadmap / خارطة طريق رفيق
 
-This document records the implementation state at the time of the GitHub upload. Statuses describe the repository, not a promise of store approval or a completed visual asset pipeline.
+This document records the implementation state at the time of the GitHub upload. Statuses describe the repository, not a promise of store approval or a completed visual asset pipeline. Last verified: 2026-09-22.
 
 ## Completed batches
 
@@ -10,11 +10,11 @@ This document records the implementation state at the time of the GitHub upload.
 
 ### Batch 2 — 3D scene foundation
 
-**Status: complete.** `flutter_scene` was added for the Android 3D path. The GLB asset contract, dog rig manifest and `DogSceneView` were created. The 2D renderer remains the safe fallback while the final model is absent.
+**Status: complete for the current vertical slice.** `flutter_scene` is active on the Android 3D path. `DogSceneView` loads `assets/models/dog/dog.glb`, adds the environment and keeps the 2D renderer as a safe fallback if the asset fails to load. The current asset is an original stylized prototype, not the final production rig.
 
 ### Batch 3 — Secondary animal motion
 
-**Status: complete.** `DogSecondaryMotion` adds procedural breathing, independent ear sway and spring-damped tail follow-through. It is name-driven and fail-safe for optional joints including `Chest`, `Spine`, `Ear_L`, `Ear_R`, and `Tail_01..03`.
+**Status: complete for the current asset contract.** `DogSecondaryMotion` adds procedural breathing, independent ear sway and spring-damped tail follow-through. It is name-driven and fail-safe for optional joints including `Chest`, `Spine`, `Ear_L`, `Ear_R`, and `Tail_01..03`; the current original prototype exposes named `Chest`, `Ear.L`, `Ear.R`, `Tail`, and `TailTip` nodes and receives the breathing layer.
 
 ### Batch 4 — Environment rendering
 
@@ -36,9 +36,11 @@ This document records the implementation state at the time of the GitHub upload.
 
 ### Batch 8 — Final model and animation production
 
-**Priority: highest.** Supply a production-quality dog GLB based on the approved visual references. It must contain a named skeleton, materials, texture maps, and authored clips: `Idle`, `Walk`, `Run`, `Play`, `Sleep`, `Eat`, `Drink`, `Happy`, and `Sad`. Validate scale, forward axis, joint names and animation blending on Android.
+**Status: in progress. Priority: highest.** A self-contained original stylized dog GLB is now committed and loads through `DogSceneView`. It contains 21 named nodes, materials, a ground-aligned scale, and procedural breathing support. It is a functional 3D vertical slice, but it does not yet contain a production skeleton or authored locomotion/action clips.
 
-**Acceptance criteria:** the GLB loads without fallback; the dog is visible on the environment ground; locomotion matches the 2D behavior state; secondary motion layers without visible joint drift; no missing material or texture warnings.
+**Remaining work:** replace or extend the prototype with a licensed production-quality dog based on the approved visual references; add a named skeleton, optimized texture maps, and authored clips `Idle`, `Walk`, `Run`, `Play`, `Sleep`, `Eat`, `Drink`, `Happy`, and `Sad`; then validate animation blending and frame time on Android hardware.
+
+**Current acceptance:** GLB loading, ground placement, environment rendering, fallback behavior and static material rendering are verified by code/build checks. Android visual QA, authored locomotion and final visual matching remain pending.
 
 ### Batch 9 — Model management and chat quality
 
@@ -68,7 +70,7 @@ This document records the implementation state at the time of the GitHub upload.
 
 | Gap | Why it matters | Planned batch |
 |---|---|---|
-| Final rigged `dog.glb` absent | 3D path cannot be visually validated end-to-end | 8 |
+| Production rigged `dog.glb` and authored clips absent | Current original GLB is a functional stylized prototype; final reference-quality animation is still needed | 8 |
 | No bundled LocalLLM binary | Models are large and license-specific | 9 |
 | No model download/import screen | Users cannot yet select a model in-app | 9 |
 | 3D visual QA on physical devices pending | Build success is not visual or performance proof | 8–10 |
@@ -77,6 +79,10 @@ This document records the implementation state at the time of the GitHub upload.
 | Release signing and Play Console metadata | Required for publication | 11–12 |
 | Privacy, consent and terms review | Required for responsible distribution | 11 |
 | Broader automated test coverage | Needed for migration and regression safety | 10 |
+
+## Latest verification
+
+The repository passed `flutter analyze` with no issues and produced `build/app/outputs/flutter-apk/app-debug.apk` successfully. The latest GitHub commit is `9db07e3` (`Integrate original 3D dog renderer`). The debug APK is a development artifact only; physical-device visual and performance verification is still required.
 
 ## Release gates
 
