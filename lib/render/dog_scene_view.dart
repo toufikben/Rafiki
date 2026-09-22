@@ -51,9 +51,7 @@ class _DogSceneViewState extends State<DogSceneView> {
   @override
   Widget build(BuildContext context) {
     if (_error != null) {
-      return const Center(
-        child: Text('3D dog asset is not installed yet.'),
-      );
+      return const SizedBox.shrink();
     }
     if (!_ready) {
       return const Center(child: CircularProgressIndicator());

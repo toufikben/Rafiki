@@ -16,7 +16,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
     await FlutterGemma.initialize(
-      inferenceEngines: [LiteRtLmEngine()],
+      inferenceEngines: [const LiteRtLmEngine()],
     );
   } catch (_) {
     // The conversational fallback remains available if native LLM loading

@@ -84,12 +84,12 @@ class DogEnvironment {
   Node createDustEmitter() {
     final system = ParticleSystem(
       maxParticles: 72,
-      shape: SphereEmitterShape(radius: 0.8, hemisphere: true),
+      shape: const SphereEmitterShape(radius: 0.8, hemisphere: true),
       spawner: Spawner(rate: 7.0),
       lifetime: const UniformFloat(2.0, 4.5),
       startSpeed: const UniformFloat(0.015, 0.055),
       startSize: const UniformFloat(0.012, 0.035),
-      startColor: const ConstantColor(vm.Vector4(0.76, 0.54, 0.32, 0.18)),
+      startColor: ConstantColor(vm.Vector4(0.76, 0.54, 0.32, 0.18)),
       gravity: vm.Vector3(0.0, 0.006, 0.0),
       modules: <ParticleModule>[
         ColorOverLifeModule(

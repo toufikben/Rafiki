@@ -2,9 +2,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../ai/learning_profile.dart';
+import '../../core/constants/pet_species.dart';
+import '../../core/models/pet_state.dart';
 import '../../engine/behavior_engine.dart';
 import '../../providers/pet_provider.dart';
 import '../../render/pet_painter.dart';
+import '../../render/dog_scene_view.dart';
 import '../../services/ad_service.dart';
 import '../../services/audio_service.dart';
 import '../settings/settings_screen.dart';
@@ -107,28 +110,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ),
             ),
             Expanded(
-              child: GestureDetector(
-                onPanUpdate: (details) {
-                  _cursor = details.localPosition;
-                },
-                onTapDown: (details) {
-                  _cursor = details.localPosition;
-                },
-                child: AnimatedBuilder(
-                  animation: _animController,
-                  builder: (context, _) {
-                    return CustomPaint(
-                      painter: PetPainter(
-                        pet: pet,
-                        behavior: _engine.currentBehavior,
-                        animationTime: _animController.value * 60,
-                        scale: 1.0,
-                      ),
-                      child: const SizedBox.expand(),
-                    );
-                  },
-                ),
-              ),
+              child: _buildPetViewport(pet),
             ),
             Padding(
               padding: const EdgeInsets.all(16),
@@ -184,6 +166,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           behavior: SnackBarBehavior.floating,
         ),
       );
+  }
+
+  Widget _buildPetViewport(PetState pet) {
+    final fallback = AnimatedBuilder(
+      animation: _animController,
+      builder: (context, _) {
+        return CustomPaint(
+          painter: PetPainter(
+            pet: pet,
+            behavior: _engine.currentBehavior,
+            animationTime: _animController.value * 60,
+            scale: 1.0,
+          ),
+          child: const SizedBox.expand(),
+        );
+      },
+    );
+
+    return GestureDetector(
+      onPanUpdate: (details) => _cursor = details.localPosition,
+      onTapDown: (details) => _cursor = details.localPosition,
+      child: pet.species == PetSpecies.dog
+          ? Stack(
+              fit: StackFit.expand,
+              children: [fallback, const DogSceneView()],
+            )
+          : fallback,
+    );
   }
 
   Future<void> _openChat() async {

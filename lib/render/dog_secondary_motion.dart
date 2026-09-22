@@ -25,6 +25,7 @@ class DogSecondaryMotion extends Component {
   final Map<String, Node> _joints = <String, Node>{};
   final Map<String, vm.Vector3> _basePositions = <String, vm.Vector3>{};
   final Map<String, vm.Quaternion> _baseRotations = <String, vm.Quaternion>{};
+  vm.Vector3? _baseRootScale;
   double _time = 0;
   double _tailVelocity = 0;
   double _tailOffset = 0;
@@ -41,6 +42,7 @@ class DogSecondaryMotion extends Component {
 
   @override
   void onAttach() {
+    _baseRootScale = node.scale;
     for (final name in _jointNames) {
       final joint = node.name == name ? node : node.getChildByName(name);
       if (joint == null) continue;
@@ -76,6 +78,11 @@ class DogSecondaryMotion extends Component {
     if (spine != null) {
       spine.rotation = _baseRotations['Spine']! *
           vm.Quaternion.axisAngle(vm.Vector3(1, 0, 0), breath * 0.45);
+    }
+    if (chest == null && spine == null && _baseRootScale != null) {
+      final scale = _baseRootScale!.clone();
+      scale.scale(1.0 + math.sin(_time * 2.15) * 0.006 * intensity);
+      node.scale = scale;
     }
   }
 
