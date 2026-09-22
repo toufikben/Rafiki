@@ -44,6 +44,8 @@ This document records the implementation state at the time of the GitHub upload.
 
 The detailed production sequence, rig contract, animation list, validation gates and commit plan are documented in [`FINAL_3D_MODEL_ANIMATION_PLAN.md`](FINAL_3D_MODEL_ANIMATION_PLAN.md).
 
+The Android-focused bone-weight, PBR material, texture, memory and GPU budget is documented in [`3D_RIG_MATERIALS_ANDROID_SPEC.md`](3D_RIG_MATERIALS_ANDROID_SPEC.md).
+
 ### Batch 9 — Model management and chat quality
 
 **Priority: high.** Add a settings flow for installing/importing a small `.litertlm` model. Show storage requirement, download progress, cancellation, retry, model deletion, active-model status and a Wi-Fi recommendation. Add conversation history limits, response cancellation, language detection, prompt injection resistance, and explicit privacy messaging.
