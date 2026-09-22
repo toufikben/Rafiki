@@ -4,10 +4,41 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../ai/local_model_manager.dart';
+import '../../ai/model_install_preflight.dart';
 import '../../data/database.dart';
-import '../../providers/pet_provider.dart';
 import '../../services/audio_service.dart';
 import '../../services/floating_service.dart';
+
+String _formatBytes(int bytes) {
+  if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(0)} KB';
+  if (bytes < 1024 * 1024 * 1024) {
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+  return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
+}
+
+class _DownloadDetail extends StatelessWidget {
+  const _DownloadDetail({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      dense: true,
+      contentPadding: EdgeInsets.zero,
+      leading: Icon(icon),
+      title: Text(label),
+      subtitle: Text(value),
+    );
+  }
+}
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -173,10 +204,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           onPressed: busy
                               ? null
                               : () async {
-                                    final files = await FilePicker.pickFiles(
-                                      type: FileType.custom,
-                                      allowedExtensions: const ['litertlm'],
-                                    );
+                                  final files = await FilePicker.pickFiles(
+                                    type: FileType.custom,
+                                    allowedExtensions: const ['litertlm'],
+                                  );
                                   final file = files.isEmpty ? null : files.single;
                                   if (file?.path != null && context.mounted) {
                                     setDialogState(() {
@@ -202,7 +233,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                         () => progress = value,
                                       ),
                                     ),
-                            ),
+                                  ),
                           child: const Text('Install local file'),
                         ),
                         TextField(
@@ -216,14 +247,110 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ElevatedButton(
                           onPressed: busy || urlController.text.trim().isEmpty
                               ? null
-                              : () => install(
-                                    () => _modelManager.installFromNetwork(
-                                      url: urlController.text.trim(),
-                                      onProgress: (value) => setDialogState(
-                                        () => progress = value,
+                              : () async {
+                                  final url = urlController.text.trim();
+                                  setDialogState(() => error = null);
+                                  final preflight =
+                                      await ModelInstallPreflight.networkUrl(url);
+                                  if (!context.mounted) return;
+                                  if (!preflight.valid) {
+                                    setDialogState(
+                                      () => error = preflight.reason,
+                                    );
+                                    return;
+                                  }
+                                  final confirmed = await showDialog<bool>(
+                                    context: context,
+                                    builder: (confirmationContext) {
+                                      final size = preflight.sizeBytes == null
+                                          ? 'Unknown (server did not provide Content-Length)'
+                                          : _formatBytes(preflight.sizeBytes!);
+                                      final fileName = Uri.parse(url)
+                                          .pathSegments
+                                          .last;
+                                      return AlertDialog(
+                                        title: const Text('Confirm model download'),
+                                        content: SingleChildScrollView(
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.stretch,
+                                            children: [
+                                              const Icon(
+                                                Icons.download_for_offline_outlined,
+                                                size: 42,
+                                              ),
+                                              const SizedBox(height: 12),
+                                              Text(
+                                                fileName.isEmpty
+                                                    ? 'LiteRT-LM model'
+                                                    : fileName,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 12),
+                                              _DownloadDetail(
+                                                icon: Icons.data_usage,
+                                                label: 'Estimated download size',
+                                                value: size,
+                                              ),
+                                              _DownloadDetail(
+                                                icon: Icons.storage_outlined,
+                                                label: 'Model storage currently used',
+                                                value: storage == null
+                                                    ? 'Unavailable'
+                                                    : '${storage!.totalSizeMB.toStringAsFixed(1)} MB in ${storage!.totalFiles} file(s)',
+                                              ),
+                                              _DownloadDetail(
+                                                icon: Icons.smart_toy_outlined,
+                                                label: 'Active model',
+                                                value: _modelManager.activeModelName ??
+                                                    'None',
+                                              ),
+                                              const SizedBox(height: 12),
+                                              const Text(
+                                                'This action downloads model data to this device. Wi-Fi is recommended; mobile data and additional storage may be used.',
+                                              ),
+                                              if (preflight.warning != null) ...[
+                                                const SizedBox(height: 8),
+                                                Text(
+                                                  preflight.warning!,
+                                                  style: const TextStyle(
+                                                    color: Colors.orange,
+                                                  ),
+                                                ),
+                                              ],
+                                            ],
+                                          ),
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(confirmationContext, false),
+                                            child: const Text('Cancel'),
+                                          ),
+                                          FilledButton.icon(
+                                            onPressed: () =>
+                                                Navigator.pop(confirmationContext, true),
+                                            icon: const Icon(Icons.download),
+                                            label: const Text('Download'),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                  if (confirmed == true && context.mounted) {
+                                    await install(
+                                      () => _modelManager.installFromNetwork(
+                                        url: url,
+                                        onProgress: (value) => setDialogState(
+                                          () => progress = value,
+                                        ),
                                       ),
-                                    ),
-                                  ),
+                                    );
+                                  }
+                                },
                           child: const Text('Download and install'),
                         ),
                         if (urlController.text.trim().isNotEmpty)
@@ -310,29 +437,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _confirmDelete(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete everything?'),
-        content: const Text(
-          'Your pet and all memories will be permanently deleted.',
-        ),
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete all data?'),
+        content: const Text('This removes the local pet and cannot be undone.'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
+            onPressed: () => Navigator.pop(dialogContext, false),
             child: const Text('Cancel'),
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete',
-                style: TextStyle(color: Colors.red)),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Delete'),
           ),
         ],
       ),
     );
-    if (confirmed == true) {
-      await Database.deleteAll();
-      if (!context.mounted) return;
-      Navigator.pop(context);
-      ref.invalidate(petProvider);
-    }
+    if (confirmed == true) await Database.deleteAll();
   }
 }

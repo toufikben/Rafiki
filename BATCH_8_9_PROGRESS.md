@@ -1,7 +1,7 @@
 # تقرير تقدم Batch 8 وBatch 9
 
 **المشروع:** Rafiq / Rafiki  
-**حالة الجولة:** إغلاق language detection وmodel preflight ضمن Batch 9
+**حالة الجولة:** إغلاق شاشة تأكيد تنزيل النموذج ضمن Batch 9
 **نتيجة التحقق:** `flutter analyze` ناجح، و`flutter test -j 1` ناجح بعدد 32 اختبارًا، و`flutter build apk --debug` ناجح.
 
 ## ملخص التنفيذ
@@ -10,12 +10,12 @@
 |---|---|---|---|
 | Batch 8 — runtime animation | إضافة `DogAnimationRuntime` إلى مشهد الكلب؛ يقرأ clips المضمنة في GLB، ينشئ `AnimationClip`، يدعم loop، اختيار clip، وإجراء crossfade بين الحركة الحالية والتالية | منفذ ومحلل ومبني | يحتاج GLB إنتاجيًا يحتوي skeleton وclips فعلية، ثم تحقق بصري وأداء على Android |
 | Batch 8 — prototype safety | عندما لا يحتوي GLB الحالي على animations، يبقى المشغل no-op ولا يعطل عرض النموذج أو fallback | منفذ | لا توجد فجوة وظيفية في النسخة الحالية |
-| Batch 9 — explicit model install | إضافة `LocalModelManager` وتثبيت نموذج `.litertlm` من file picker أو URL | منفذ | إضافة preflight لحجم النموذج وصلاحيات المنصة |
+| Batch 9 — explicit model install | إضافة `LocalModelManager` وتثبيت نموذج `.litertlm` من file picker أو URL | منفذ | تحسين صلاحيات المنصة ورسائل الخطأ |
 | Batch 9 — progress and cancellation | progress callback و`CancelToken` وزر إلغاء أثناء التثبيت | منفذ | اختبار cancellation مع تنزيل حقيقي على Android |
 | Batch 9 — model lifecycle | list installed، uninstall، cleanup orphaned storage، active model وstorage usage | منفذ | اختبار lifecycle على Android |
-| Batch 9 — privacy boundary | لا يوجد تنزيل تلقائي؛ التثبيت لا يبدأ إلا بعد ضغط المستخدم؛ fallback يعمل بدون نموذج؛ تحذير Wi-Fi/mobile-data | منفذ | تأكيد حجم التخزين قبل التنزيل |
+| Batch 9 — privacy boundary | لا يوجد تنزيل تلقائي؛ التثبيت لا يبدأ إلا بعد ضغط المستخدم؛ fallback يعمل بدون نموذج؛ تحذير Wi-Fi/mobile-data | منفذ | لا توجد فجوة وظيفية؛ تحسين free-space إن توفر API |
 | Batch 9 — chat quality | fallback حتمي، كشف العربية/الإنجليزية، حد 12 دورة للسجل native، وإلغاء التوليد بزر stop | منفذ جزئي | runtime failure injection |
-| Batch 9 — model preflight | تحقق extension، وجود الملف، minimum size، وصحة URL وHEAD metadata قبل التثبيت | منفذ | شاشة تأكيد غنية للحجم واختبار Android فعلي |
+| Batch 9 — model preflight | تحقق extension، وجود الملف، minimum size، وصحة URL وHEAD metadata قبل التثبيت | منفذ | اختبار Android فعلي |
 
 ## ملفات الجولة
 
@@ -43,4 +43,4 @@
 
 ## القرار الهندسي
 
-لم يتم تضمين نموذج لغة أو GLB إنتاجي افتراضيًا؛ ذلك يحافظ على حجم المستودع وحقوق الترخيص ويمنع التنزيلات غير المقصودة. تم الآن إغلاق file picker وstorage/active-model UX وحد السجل وإلغاء التوليد وكشف العربية/الإنجليزية وpreflight الأساسي للمصادر. الخطوات التالية ذات الأولوية هي شاشة تأكيد غنية لحجم النموذج، ثم اختبار نموذج مرخص فعليًا وruntime failure injection على Android.
+لم يتم تضمين نموذج لغة أو GLB إنتاجي افتراضيًا؛ ذلك يحافظ على حجم المستودع وحقوق الترخيص ويمنع التنزيلات غير المقصودة. تم الآن إغلاق file picker وstorage/active-model UX وحد السجل وإلغاء التوليد وكشف العربية/الإنجليزية وpreflight الأساسي للمصادر وشاشة تأكيد تنزيل غنية. الخطوات التالية ذات الأولوية هي اختبار نموذج مرخص فعليًا وruntime failure injection على Android، مع تحسين free-space إذا توفر API موثوق.
