@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../ai/local_model_manager.dart';
 import '../../data/database.dart';
 import '../../providers/pet_provider.dart';
 import '../../services/audio_service.dart';
@@ -16,6 +17,7 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _soundEnabled = true;
   bool _floatingEnabled = false;
+  final LocalModelManager _modelManager = LocalModelManager();
 
   @override
   void initState() {
@@ -53,6 +55,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           const Divider(),
           ListTile(
+            leading: const Icon(Icons.smart_toy_outlined),
+            title: const Text('Local AI model'),
+            subtitle: const Text(
+              'Install a selected .litertlm model; nothing downloads automatically',
+            ),
+            onTap: _showModelManager,
+          ),
+          const Divider(),
+          ListTile(
             leading: const Icon(Icons.delete_forever, color: Colors.red),
             title: const Text('Delete All Data'),
             subtitle: const Text('This cannot be undone'),
@@ -72,6 +83,158 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _showModelManager() async {
+    final pathController = TextEditingController();
+    final urlController = TextEditingController();
+    var installed = <String>[];
+    try {
+      installed = await _modelManager.listInstalled();
+    } catch (_) {}
+    if (!mounted) {
+      pathController.dispose();
+      urlController.dispose();
+      return;
+    }
+    try {
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) {
+          var busy = false;
+          var progress = 0;
+          String? error;
+
+          return StatefulBuilder(
+            builder: (context, setDialogState) {
+              Future<void> refresh() async {
+                try {
+                  final models = await _modelManager.listInstalled();
+                  if (context.mounted) {
+                    setDialogState(() => installed = models);
+                  }
+                } catch (e) {
+                  if (context.mounted) setDialogState(() => error = '$e');
+                }
+              }
+
+              Future<void> install(Future<void> Function() action) async {
+                setDialogState(() {
+                  busy = true;
+                  progress = 0;
+                  error = null;
+                });
+                try {
+                  await action();
+                  await refresh();
+                } catch (e) {
+                  if (context.mounted) setDialogState(() => error = '$e');
+                } finally {
+                  if (context.mounted) setDialogState(() => busy = false);
+                }
+              }
+
+              return AlertDialog(
+                title: const Text('Local AI model'),
+                content: SizedBox(
+                  width: 420,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Text(
+                          'Models stay on this device. Choose an explicit local file or URL to install.',
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: pathController,
+                          onChanged: (_) => setDialogState(() {}),
+                          decoration: const InputDecoration(
+                            labelText: 'Local .litertlm path',
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: busy || pathController.text.trim().isEmpty
+                              ? null
+                              : () => install(
+                                    () => _modelManager.installFromFile(
+                                      path: pathController.text.trim(),
+                                      onProgress: (value) => setDialogState(
+                                        () => progress = value,
+                                      ),
+                                    ),
+                                  ),
+                          child: const Text('Install local file'),
+                        ),
+                        TextField(
+                          controller: urlController,
+                          onChanged: (_) => setDialogState(() {}),
+                          decoration: const InputDecoration(
+                            labelText: 'Model URL',
+                          ),
+                          keyboardType: TextInputType.url,
+                        ),
+                        ElevatedButton(
+                          onPressed: busy || urlController.text.trim().isEmpty
+                              ? null
+                              : () => install(
+                                    () => _modelManager.installFromNetwork(
+                                      url: urlController.text.trim(),
+                                      onProgress: (value) => setDialogState(
+                                        () => progress = value,
+                                      ),
+                                    ),
+                                  ),
+                          child: const Text('Download and install'),
+                        ),
+                        if (busy) ...[
+                          LinearProgressIndicator(value: progress / 100),
+                          Text('Progress: $progress%'),
+                          TextButton(
+                            onPressed: _modelManager.cancelInstall,
+                            child: const Text('Cancel installation'),
+                          ),
+                        ],
+                        if (error != null)
+                          Text(error!, style: const TextStyle(color: Colors.red)),
+                        const SizedBox(height: 8),
+                        const Text('Installed models'),
+                        if (installed.isEmpty)
+                          const Text('No local model installed.'),
+                        for (final model in installed)
+                          ListTile(
+                            dense: true,
+                            title: Text(model),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete_outline),
+                              onPressed: busy
+                                  ? null
+                                  : () async {
+                                      await _modelManager.uninstall(model);
+                                      await refresh();
+                                    },
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    child: const Text('Close'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      );
+    } finally {
+      pathController.dispose();
+      urlController.dispose();
+    }
   }
 
   Future<void> _toggleFloating(bool value) async {

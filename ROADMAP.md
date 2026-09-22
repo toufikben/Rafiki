@@ -36,11 +36,11 @@ This document records the implementation state at the time of the GitHub upload.
 
 ### Batch 8 — Final model and animation production
 
-**Status: in progress. Priority: highest.** A self-contained original stylized dog GLB is now committed and loads through `DogSceneView`. It contains 21 named nodes, materials, a ground-aligned scale, procedural breathing support, touch-driven placement, and interactive audio hooks. A testable `DogAnimationController` and manifest contract validator have now been added so behavior-to-clip mapping and required rig names can be verified before the final asset arrives. The committed GLB remains a functional 3D vertical slice and does not yet contain a production skeleton or authored locomotion/action clips.
+**Status: in progress. Priority: highest.** A self-contained original stylized dog GLB is now committed and loads through `DogSceneView`. It contains 21 named nodes, materials, a ground-aligned scale, procedural breathing support, touch-driven placement, and interactive audio hooks. A testable `DogAnimationController`, manifest contract validator, and runtime `DogAnimationRuntime` clip binder with crossfade support are now integrated. The runtime is safe when the current prototype has no authored clips and will bind `Idle`, `Walk`, `Run`, `Play`, `Sleep`, `Eat`, `Drink`, `Happy`, and `Sad` when the production GLB supplies them.
 
 **Remaining work:** replace or extend the prototype with a licensed production-quality dog based on the approved visual references; add a named skeleton, optimized texture maps, and authored clips `Idle`, `Walk`, `Run`, `Play`, `Sleep`, `Eat`, `Drink`, `Happy`, and `Sad`; then validate animation blending and frame time on Android hardware.
 
-**Current acceptance:** GLB loading, ground placement, environment rendering, fallback behavior, static material rendering, touch interaction, audio callbacks, the clip-selection contract, and manifest-name validation are implemented. Flutter analysis, automated tests and debug APK builds are verified in the current environment. Android visual QA, authored locomotion and final visual matching remain pending.
+**Current acceptance:** GLB loading, ground placement, environment rendering, fallback behavior, static material rendering, touch interaction, audio callbacks, clip-selection policy, runtime clip binding/crossfade and manifest-name validation are implemented. Flutter analysis, automated tests and debug APK builds are verified in the current environment. Android visual QA, authored locomotion, production rig validation and final visual matching remain pending.
 
 The detailed production sequence, rig contract, animation list, validation gates and commit plan are documented in [`FINAL_3D_MODEL_ANIMATION_PLAN.md`](FINAL_3D_MODEL_ANIMATION_PLAN.md).
 
@@ -48,7 +48,9 @@ The Android-focused bone-weight, PBR material, texture, memory and GPU budget is
 
 ### Batch 9 — Model management and chat quality
 
-**Priority: high.** Add a settings flow for installing/importing a small `.litertlm` model. Show storage requirement, download progress, cancellation, retry, model deletion, active-model status and a Wi-Fi recommendation. Add conversation history limits, response cancellation, language detection, prompt injection resistance, and explicit privacy messaging.
+**Status: in progress. Priority: high.** Added an explicit settings flow backed by `LocalModelManager` for listing installed models, installing a user-selected `.litertlm` file or URL, progress reporting, cancellation, uninstall and orphan cleanup. The first-run path remains offline and never downloads implicitly. The deterministic fallback and privacy boundary are already covered by tests.
+
+**Remaining work:** add a platform file picker instead of a manually entered path, display storage usage and active-model identity, add retry and Wi-Fi recommendation UX, cap conversation history, support response cancellation and language detection, and perform model-runtime failure injection on Android.
 
 **Acceptance criteria:** chat works offline with no model, can switch to a user-installed model, never blocks the UI, handles model failure gracefully, and does not download without an explicit action.
 
@@ -92,7 +94,7 @@ The Android-focused bone-weight, PBR material, texture, memory and GPU budget is
 
 ## Latest verification
 
-The repository passed `flutter analyze` with no issues, all 27 automated tests passed sequentially, and `flutter build apk --debug` produced `build/app/outputs/flutter-apk/app-debug.apk` (279 MB). The verification environment uses Flutter 3.47.5, Dart 3.13.4, Android SDK 36, NDK 28.2.13676358 and JDK 21. The APK is still a development artifact only; physical-device visual and performance verification is still required.
+The repository passed `flutter analyze` with no issues, all 27 automated tests passed sequentially, and `flutter build apk --debug` produced `build/app/outputs/flutter-apk/app-debug.apk` (307 MB in the Batch 8/9 build). The verification environment uses Flutter 3.47.5, Dart 3.13.4, Android SDK 36, NDK 28.2.13676358 and JDK 21. The APK is still a development artifact only; physical-device visual and performance verification is still required.
 
 ## Release gates
 

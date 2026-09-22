@@ -3,6 +3,7 @@ import 'package:flutter_scene/scene.dart';
 import 'package:vector_math/vector_math.dart' as vm;
 
 import 'dog_environment.dart';
+import 'dog_animation_runtime.dart';
 import 'dog_interaction_motion.dart';
 import 'dog_secondary_motion.dart';
 import '../services/audio_service.dart';
@@ -47,6 +48,7 @@ class _DogSceneViewState extends State<DogSceneView> {
       }
       final dog = await Node.fromGlbAsset(widget.assetPath);
       dog.addComponent(_interaction);
+      dog.addComponent(DogAnimationRuntime());
       dog.addComponent(DogSecondaryMotion());
       _scene.add(dog);
       if (mounted) setState(() => _ready = true);
