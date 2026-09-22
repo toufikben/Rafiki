@@ -22,7 +22,7 @@ This document records the implementation state at the time of the GitHub upload.
 
 ### Batch 5 — Interactive animal audio
 
-**Status: complete.** A multi-channel audio mixer was added for breathing, panting, steps, bark, whine and generic pet sounds. Body loops, steps and one-shot reactions use separate players. Cooldowns and speed-sensitive volume prevent repetitive or competing audio.
+**Status: complete for the current vertical slice.** A multi-channel audio mixer was added for breathing, panting, steps, bark, whine and generic pet sounds. Body loops, steps and one-shot reactions use separate players. Cooldowns and speed-sensitive volume prevent repetitive or competing audio. 3D touch interactions now trigger a quieter bark on tap and a rate-limited step cue while dragging, with silent fallback when an asset is unavailable.
 
 ### Batch 6 — Local adaptive intelligence
 
@@ -36,11 +36,11 @@ This document records the implementation state at the time of the GitHub upload.
 
 ### Batch 8 — Final model and animation production
 
-**Status: in progress. Priority: highest.** A self-contained original stylized dog GLB is now committed and loads through `DogSceneView`. It contains 21 named nodes, materials, a ground-aligned scale, and procedural breathing support. It is a functional 3D vertical slice, but it does not yet contain a production skeleton or authored locomotion/action clips.
+**Status: in progress. Priority: highest.** A self-contained original stylized dog GLB is now committed and loads through `DogSceneView`. It contains 21 named nodes, materials, a ground-aligned scale, procedural breathing support, touch-driven placement, and interactive audio hooks. It is a functional 3D vertical slice, but it does not yet contain a production skeleton or authored locomotion/action clips.
 
 **Remaining work:** replace or extend the prototype with a licensed production-quality dog based on the approved visual references; add a named skeleton, optimized texture maps, and authored clips `Idle`, `Walk`, `Run`, `Play`, `Sleep`, `Eat`, `Drink`, `Happy`, and `Sad`; then validate animation blending and frame time on Android hardware.
 
-**Current acceptance:** GLB loading, ground placement, environment rendering, fallback behavior and static material rendering are verified by code/build checks. Android visual QA, authored locomotion and final visual matching remain pending.
+**Current acceptance:** GLB loading, ground placement, environment rendering, fallback behavior, static material rendering, touch interaction, audio callbacks, `flutter analyze`, automated tests and debug APK builds are verified. Android visual QA, authored locomotion and final visual matching remain pending.
 
 The detailed production sequence, rig contract, animation list, validation gates and commit plan are documented in [`FINAL_3D_MODEL_ANIMATION_PLAN.md`](FINAL_3D_MODEL_ANIMATION_PLAN.md).
 
@@ -51,6 +51,10 @@ The Android-focused bone-weight, PBR material, texture, memory and GPU budget is
 **Priority: high.** Add a settings flow for installing/importing a small `.litertlm` model. Show storage requirement, download progress, cancellation, retry, model deletion, active-model status and a Wi-Fi recommendation. Add conversation history limits, response cancellation, language detection, prompt injection resistance, and explicit privacy messaging.
 
 **Acceptance criteria:** chat works offline with no model, can switch to a user-installed model, never blocks the UI, handles model failure gracefully, and does not download without an explicit action.
+
+### Beta readiness — Internal technical beta
+
+**Status: not yet released.** The current codebase is suitable for an internal technical beta after a real-device smoke test. The beta gate requires testing the GLB, touch response, interactive audio, background/resume behavior, fallback paths and local chat on representative Android hardware. A public visual beta remains blocked by the production rigged model, authored clips, release signing, privacy review and performance QA.
 
 ### Batch 10 — Behavioral validation and performance
 
@@ -75,10 +79,12 @@ The Android-focused bone-weight, PBR material, texture, memory and GPU budget is
 | Gap | Why it matters | Planned batch |
 |---|---|---|
 | Production rigged `dog.glb` and authored clips absent | Current original GLB is a functional stylized prototype; final reference-quality animation is still needed | 8 |
-| No bundled LocalLLM binary | Models are large and license-specific | 9 |
+| No bundled LocalLLM binary | Models are large and license-specific; the deterministic offline fallback remains available | 9 |
 | No model download/import screen | Users cannot yet select a model in-app | 9 |
 | 3D visual QA on physical devices pending | Build success is not visual or performance proof | 8–10 |
-| Generated APK is a debug artifact | Not suitable for store distribution | 11 |
+| Generated APK is a debug artifact | Suitable for development smoke tests only, not store distribution | 11 |
+| Real-device smoke test for touch/audio/3D pending | Build success does not prove visual, audio or GPU behavior on Android hardware | Beta / 8–10 |
+| APK size optimization pending | Current debug artifact is large because native and model-related dependencies are included | Beta / 9–11 |
 | Test ad and purchase identifiers | Must be replaced before release | 11 |
 | Release signing and Play Console metadata | Required for publication | 11–12 |
 | Privacy, consent and terms review | Required for responsible distribution | 11 |
@@ -86,7 +92,7 @@ The Android-focused bone-weight, PBR material, texture, memory and GPU budget is
 
 ## Latest verification
 
-The repository passed `flutter analyze` with no issues and produced `build/app/outputs/flutter-apk/app-debug.apk` successfully. The latest GitHub commit is `fab278d` (`Update roadmap after 3D renderer verification`). The debug APK is a development artifact only; physical-device visual and performance verification is still required.
+The repository passed `flutter analyze` with no issues, all 6 automated tests passed, and `build/app/outputs/flutter-apk/app-debug.apk` was produced successfully after the touch and interactive-audio changes. The latest GitHub commit is `697970c` (`Add interactive dog touch audio`). The debug APK is a development artifact only; physical-device visual and performance verification is still required.
 
 ## Release gates
 
