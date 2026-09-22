@@ -68,9 +68,9 @@ The Android-focused bone-weight, PBR material, texture, memory and GPU budget is
 
 ### Batch 11 — Production hardening
 
-**Status: in progress. Priority: high.** Added build-time `--dart-define` configuration for AdMob and purchase identifiers, release fail-closed behavior when production identifiers are absent, a user-facing privacy and terms screen, and automated coverage for the release configuration boundary. Production identifiers, consent provider choice, crash-reporting provider, and release signing remain intentionally external inputs and are not invented or committed to the repository.
+**Status: in progress. Priority: high.** Added build-time `--dart-define` configuration for AdMob and purchase identifiers, release fail-closed behavior when production identifiers are absent, a user-facing privacy and terms screen, automated coverage for the release configuration boundary, and a GitHub Actions pipeline that analyzes/tests then builds and uploads debug and release APK artifacts. The local debug APK was rebuilt and passed archive integrity inspection; details are in [`docs/DEBUG_APK_INSPECTION.md`](docs/DEBUG_APK_INSPECTION.md). Production identifiers, consent provider choice, crash-reporting provider, and release signing remain intentionally external inputs and are not invented or committed to the repository.
 
-**Remaining work:** provide real production identifiers through the release environment, select and configure a consent/crash-reporting provider, complete localization and accessibility review, and create a release-signed build outside the repository.
+**Remaining work:** provide real production identifiers through the release environment, select and configure a consent/crash-reporting provider, complete localization and accessibility review, and create a release-signed build outside the repository. The debug build path is ready for APK inspection; the CI release job is allowed to fail until signing and secrets are configured. The build commands and secret boundary are documented in [`docs/RELEASE_BUILD.md`](docs/RELEASE_BUILD.md).
 
 **Acceptance criteria:** release build is signed outside the repository, no test identifiers are used in release mode, privacy-sensitive settings are clear, and Google Play pre-launch checks pass.
 

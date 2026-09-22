@@ -86,6 +86,8 @@ flutter test
 flutter build apk --debug
 ```
 
+GitHub Actions runs the same analysis, tests, debug APK build, and a release APK build on pushes, pull requests, and manual dispatch. See [`docs/RELEASE_BUILD.md`](docs/RELEASE_BUILD.md) for the required `--dart-define` values and signing boundary. The release job may remain unsuccessful until production identifiers and release signing are configured; debug APK artifacts are uploaded independently.
+
 Run on a connected Android device or emulator:
 
 ```bash

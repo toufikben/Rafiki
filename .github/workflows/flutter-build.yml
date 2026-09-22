@@ -1,0 +1,93 @@
+name: Flutter Android builds
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze-and-test:
+    name: Analyze and test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.5'
+          channel: stable
+          cache: true
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test -j 1
+
+  build-debug:
+    name: Build debug APK
+    needs: analyze-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.5'
+          channel: stable
+          cache: true
+
+      - name: Build debug APK
+        run: flutter build apk --debug
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: rafiq-debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
+
+  build-release:
+    name: Build release APK (unsigned or debug-signed until secrets are configured)
+    needs: analyze-and-test
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      RAFIQ_AD_UNIT_ID: ${{ secrets.RAFIQ_AD_UNIT_ID }}
+      RAFIQ_PREMIUM_PRODUCT_ID: ${{ secrets.RAFIQ_PREMIUM_PRODUCT_ID }}
+      RAFIQ_MONTHLY_PRODUCT_ID: ${{ secrets.RAFIQ_MONTHLY_PRODUCT_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.5'
+          channel: stable
+          cache: true
+
+      - name: Build release APK
+        run: |
+          flutter build apk --release \
+            --dart-define=RAFIQ_AD_UNIT_ID="$RAFIQ_AD_UNIT_ID" \
+            --dart-define=RAFIQ_PREMIUM_PRODUCT_ID="$RAFIQ_PREMIUM_PRODUCT_ID" \
+            --dart-define=RAFIQ_MONTHLY_PRODUCT_ID="$RAFIQ_MONTHLY_PRODUCT_ID"
+
+      - name: Upload release APK when available
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rafiq-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
