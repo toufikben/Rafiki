@@ -5,6 +5,7 @@ import 'package:vector_math/vector_math.dart' as vm;
 import 'dog_environment.dart';
 import 'dog_interaction_motion.dart';
 import 'dog_secondary_motion.dart';
+import '../services/audio_service.dart';
 
 /// Android 3D vertical-slice host for the dog asset.
 ///
@@ -22,7 +23,10 @@ class DogSceneView extends StatefulWidget {
 
 class _DogSceneViewState extends State<DogSceneView> {
   final Scene _scene = Scene();
-  final DogInteractionMotion _interaction = DogInteractionMotion();
+  final DogInteractionMotion _interaction = DogInteractionMotion(
+    onPat: AudioService.playDogTouch,
+    onMove: AudioService.playDogTouchMove,
+  );
   bool _ready = false;
   String? _error;
 

@@ -12,10 +12,14 @@ class DogInteractionMotion extends Component {
   DogInteractionMotion({
     this.maxYaw = 0.42,
     this.maxLift = 0.10,
+    this.onPat,
+    this.onMove,
   });
 
   final double maxYaw;
   final double maxLift;
+  final void Function()? onPat;
+  final void Function()? onMove;
 
   vm.Vector3? _basePosition;
   vm.Quaternion? _baseRotation;
@@ -36,6 +40,7 @@ class DogInteractionMotion extends Component {
   /// Friendly response to a tap or pet gesture.
   void pat() {
     if (_patCooldown > 0) return;
+    onPat?.call();
     _patVelocity += 1.35;
     _targetLift = 0.045;
     _patCooldown = 0.16;
@@ -44,6 +49,7 @@ class DogInteractionMotion extends Component {
   /// Maps a horizontal drag to a bounded, springy turn.
   void dragHorizontal(double pixels, double viewportWidth) {
     if (viewportWidth <= 0) return;
+    if (pixels.abs() > 0.01) onMove?.call();
     _targetYaw = (_targetYaw + pixels / viewportWidth * 0.85)
         .clamp(-maxYaw, maxYaw)
         .toDouble();

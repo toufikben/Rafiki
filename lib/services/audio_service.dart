@@ -19,10 +19,14 @@ class AudioService {
   static DateTime _lastStep = DateTime.fromMillisecondsSinceEpoch(0);
   static DateTime _lastBark = DateTime.fromMillisecondsSinceEpoch(0);
   static DateTime _lastWhine = DateTime.fromMillisecondsSinceEpoch(0);
+  static DateTime _lastTouch = DateTime.fromMillisecondsSinceEpoch(0);
+  static DateTime _lastTouchMove = DateTime.fromMillisecondsSinceEpoch(0);
 
   static const _minStepGap = Duration(milliseconds: 360);
   static const _minBarkGap = Duration(seconds: 3);
   static const _minWhineGap = Duration(seconds: 5);
+  static const _minTouchGap = Duration(milliseconds: 850);
+  static const _minTouchMoveGap = Duration(milliseconds: 280);
 
   static void init() {
     _initialized = true;
@@ -89,6 +93,25 @@ class AudioService {
     if (now.difference(_lastBark) < _minBarkGap) return;
     _lastBark = now;
     await _playOneShot('sounds/dog_bark.mp3', volume: 0.82);
+  }
+
+  /// A quieter bark used for a direct tap on the 3D pet.
+  static Future<void> playDogTouch() async {
+    final now = DateTime.now();
+    if (now.difference(_lastTouch) < _minTouchGap) return;
+    _lastTouch = now;
+    await _playOneShot('sounds/dog_bark.mp3', volume: 0.42);
+  }
+
+  /// A restrained movement cue while the user drags across the 3D pet.
+  static Future<void> playDogTouchMove() async {
+    final now = DateTime.now();
+    if (now.difference(_lastTouchMove) < _minTouchMoveGap) return;
+    _lastTouchMove = now;
+    try {
+      await _steps.setVolume(0.12);
+      await _steps.play(AssetSource('sounds/dog_steps.mp3'));
+    } catch (_) {}
   }
 
   static Future<void> playDogWhine() async {
