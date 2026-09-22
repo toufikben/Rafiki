@@ -3,6 +3,7 @@ import 'package:flutter_scene/scene.dart';
 import 'package:vector_math/vector_math.dart' as vm;
 
 import 'dog_environment.dart';
+import 'dog_interaction_motion.dart';
 import 'dog_secondary_motion.dart';
 
 /// Android 3D vertical-slice host for the dog asset.
@@ -21,6 +22,7 @@ class DogSceneView extends StatefulWidget {
 
 class _DogSceneViewState extends State<DogSceneView> {
   final Scene _scene = Scene();
+  final DogInteractionMotion _interaction = DogInteractionMotion();
   bool _ready = false;
   String? _error;
 
@@ -40,6 +42,7 @@ class _DogSceneViewState extends State<DogSceneView> {
         _scene.add(environment.createDustEmitter());
       }
       final dog = await Node.fromGlbAsset(widget.assetPath);
+      dog.addComponent(_interaction);
       dog.addComponent(DogSecondaryMotion());
       _scene.add(dog);
       if (mounted) setState(() => _ready = true);
@@ -56,11 +59,27 @@ class _DogSceneViewState extends State<DogSceneView> {
     if (!_ready) {
       return const Center(child: CircularProgressIndicator());
     }
-    return SceneView(
-      _scene,
-      camera: PerspectiveCamera(
-        position: vm.Vector3(0, 1.2, 3.5),
-        target: vm.Vector3(0, 0.9, 0),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: _interaction.pat,
+      onPanUpdate: (details) {
+        _interaction.dragHorizontal(
+          details.delta.dx,
+          context.size?.width ?? 1,
+        );
+        _interaction.dragVertical(
+          details.delta.dy,
+          context.size?.height ?? 1,
+        );
+      },
+      onPanEnd: (_) => _interaction.release(),
+      onPanCancel: _interaction.release,
+      child: SceneView(
+        _scene,
+        camera: PerspectiveCamera(
+          position: vm.Vector3(0, 1.2, 3.5),
+          target: vm.Vector3(0, 0.9, 0),
+        ),
       ),
     );
   }

@@ -184,15 +184,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       },
     );
 
+    if (pet.species == PetSpecies.dog) {
+      return Stack(
+        fit: StackFit.expand,
+        children: [fallback, const DogSceneView()],
+      );
+    }
+
     return GestureDetector(
       onPanUpdate: (details) => _cursor = details.localPosition,
       onTapDown: (details) => _cursor = details.localPosition,
-      child: pet.species == PetSpecies.dog
-          ? Stack(
-              fit: StackFit.expand,
-              children: [fallback, const DogSceneView()],
-            )
-          : fallback,
+      child: fallback,
     );
   }
 
