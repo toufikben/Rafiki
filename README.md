@@ -20,8 +20,9 @@ Rafiq is an Android-first virtual pet companion built with Flutter. The project 
 | Local text chat UI | Implemented with offline fallback |
 | Final dog GLB model and authored animation clips | Pending |
 | Bundled small `.litertlm` model | Pending explicit model selection/licensing |
-| Production AdMob/IAP identifiers | Pending |
+| Production AdMob/IAP identifiers | Pending external `--dart-define` configuration |
 | Release signing and Play Console setup | Pending |
+| Privacy and terms screens | Implemented; legal review pending |
 
 ## Features
 
@@ -95,7 +96,7 @@ The model binary is intentionally not committed. Install one explicitly through 
 
 ## Production checklist
 
-Before publishing, the project still needs a final rigged `dog.glb` with named joints and authored clips; visual and frame-time profiling on representative Android devices; a user-facing model download/import flow with storage, cancellation, and Wi-Fi controls; production AdMob and Google Play product identifiers; release signing; privacy/terms screens; store listing assets; and a release build tested through Play Console internal testing.
+Before publishing, the project still needs a final rigged `dog.glb` with named joints and authored clips; visual and frame-time profiling on representative Android devices; production AdMob and Google Play product identifiers supplied through the release environment; consent and crash-reporting configuration; release signing; legal review; store listing assets; and a release build tested through Play Console internal testing. The user-facing model download/import flow, storage confirmation, cancellation, and Wi-Fi controls are implemented.
 
 ## Documentation
 

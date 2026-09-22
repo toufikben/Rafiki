@@ -8,6 +8,7 @@ import '../../ai/model_install_preflight.dart';
 import '../../data/database.dart';
 import '../../services/audio_service.dart';
 import '../../services/floating_service.dart';
+import 'legal_information_screen.dart';
 
 String _formatBytes(int bytes) {
   if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(0)} KB';
@@ -103,10 +104,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             onTap: () => _confirmDelete(context),
           ),
           const Divider(),
-          const ListTile(
-            leading: Icon(Icons.privacy_tip),
-            title: Text('Privacy Policy'),
-            subtitle: Text('All data stays on your device'),
+          ListTile(
+            leading: const Icon(Icons.privacy_tip),
+            title: const Text('Privacy Policy'),
+            subtitle: const Text('All data stays on your device'),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const LegalInformationScreen(),
+              ),
+            ),
           ),
           const ListTile(
             leading: Icon(Icons.info_outline),

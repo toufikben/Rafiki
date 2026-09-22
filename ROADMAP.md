@@ -62,15 +62,17 @@ The Android-focused bone-weight, PBR material, texture, memory and GPU budget is
 
 ### Batch 10 — Behavioral validation and performance
 
-**Priority: high; deterministic closeout implemented.** Deterministic tests now cover vital coupling, normalized bounds, mood priority, learning serialization, corrupt-profile fallback, bounded convergence, animation transitions, the GLB contract manifest, audio cooldown windows, offline chat fallback behavior, and Isar save/reopen/delete persistence. Remaining work is CPU, memory, GPU frame-time, audio-latency and battery profiling on representative Android devices, plus model-runtime failure injection on a device with an installed model.
+**Priority: high; deterministic closeout implemented; field execution assigned to the user.** Deterministic tests now cover vital coupling, normalized bounds, mood priority, learning serialization, corrupt-profile fallback, bounded convergence, animation transitions, the GLB contract manifest, audio cooldown windows, offline chat fallback behavior, and Isar save/reopen/delete persistence. The remaining CPU, memory, GPU frame-time, audio-latency, battery and model-runtime checks require a representative Android device and are intentionally left as the user's field smoke-test gate.
 
 **Acceptance criteria:** no critical jank in the home loop, bounded memory when a local model is loaded, predictable behavior under time jumps, and documented quality/performance budgets.
 
 ### Batch 11 — Production hardening
 
-**Priority: high.** Replace test AdMob IDs and purchase product IDs, add release signing, privacy policy and terms screens, consent handling, crash reporting, secure configuration, localization review and accessibility labels.
+**Status: in progress. Priority: high.** Added build-time `--dart-define` configuration for AdMob and purchase identifiers, release fail-closed behavior when production identifiers are absent, a user-facing privacy and terms screen, and automated coverage for the release configuration boundary. Production identifiers, consent provider choice, crash-reporting provider, and release signing remain intentionally external inputs and are not invented or committed to the repository.
 
-**Acceptance criteria:** release build is signed outside the repository, no test identifiers remain, privacy-sensitive settings are clear, and Google Play pre-launch checks pass.
+**Remaining work:** provide real production identifiers through the release environment, select and configure a consent/crash-reporting provider, complete localization and accessibility review, and create a release-signed build outside the repository.
+
+**Acceptance criteria:** release build is signed outside the repository, no test identifiers are used in release mode, privacy-sensitive settings are clear, and Google Play pre-launch checks pass.
 
 ### Batch 12 — Store release and post-launch learning
 

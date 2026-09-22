@@ -1,9 +1,14 @@
 import 'dart:async';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import '../config/release_config.dart';
 
 class PurchaseService {
-  static const String premiumId = 'rafiq_premium_lifetime';
-  static const String monthlyId = 'rafiq_monthly';
+  static String get premiumId => ReleaseConfig.purchasesConfigured
+      ? ReleaseConfig.premiumProductId
+      : 'rafiq_premium_lifetime';
+  static String get monthlyId => ReleaseConfig.purchasesConfigured
+      ? ReleaseConfig.monthlyProductId
+      : 'rafiq_monthly';
 
   static final InAppPurchase _iap = InAppPurchase.instance;
   static StreamSubscription<List<PurchaseDetails>>? _sub;
@@ -14,10 +19,13 @@ class PurchaseService {
   static List<ProductDetails> get products => _products;
 
   static Future<void> init() async {
+    if (!ReleaseConfig.purchasesConfigured && !ReleaseConfig.allowTestPurchases) {
+      return;
+    }
     final available = await _iap.isAvailable();
     if (!available) return;
 
-    const ids = <String>{premiumId, monthlyId};
+    final ids = <String>{premiumId, monthlyId};
     final response = await _iap.queryProductDetails(ids);
     _products = response.productDetails;
 

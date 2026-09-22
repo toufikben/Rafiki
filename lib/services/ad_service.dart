@@ -1,8 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '../config/release_config.dart';
 
 class AdService {
-  static const String _androidInterstitial =
+  static const String _testAndroidInterstitial =
       'ca-app-pub-3940256099942544/1033173712';
   static InterstitialAd? _interstitial;
   static bool _isPremium = false;
@@ -17,9 +18,14 @@ class AdService {
   }
 
   static void loadInterstitial() {
-    if (_isPremium) return;
+    if (_isPremium || (!ReleaseConfig.adsConfigured && !ReleaseConfig.allowTestAds)) {
+      return;
+    }
+    final adUnitId = ReleaseConfig.adsConfigured
+        ? ReleaseConfig.adUnitId
+        : _testAndroidInterstitial;
     InterstitialAd.load(
-      adUnitId: _androidInterstitial,
+      adUnitId: adUnitId,
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) => _interstitial = ad,
