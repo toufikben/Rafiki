@@ -5,10 +5,10 @@ import 'package:vector_math/vector_math.dart' as vm;
 
 /// Procedural secondary motion layered on top of authored GLB animation.
 ///
-/// The component is deliberately name-driven and fail-safe: if an optional
-/// joint is absent from a model, the remaining joints keep animating. It never
-/// replaces the primary walk/run/sleep clips; it adds breathing and springy
-/// follow-through to authored poses.
+/// The authored clip remains responsible for the primary pose (idle, walk,
+/// run, eat, and so on). This component adds small local offsets for breathing,
+/// ear response, and delayed tail follow-through. Missing optional nodes are
+/// ignored so a partially rigged asset can still load safely.
 class DogSecondaryMotion extends Component {
   DogSecondaryMotion({
     this.breathing = true,
@@ -22,6 +22,16 @@ class DogSecondaryMotion extends Component {
   final bool tail;
   final double intensity;
 
+  static const Map<String, List<String>> _aliases = <String, List<String>>{
+    'Chest': <String>['Chest', 'Spine_02', 'chest'],
+    'Spine': <String>['Spine', 'Spine_01', 'spine'],
+    'Ear_L': <String>['Ear_L', 'Ear.L', 'ear_l', 'LeftEar'],
+    'Ear_R': <String>['Ear_R', 'Ear.R', 'ear_r', 'RightEar'],
+    'Tail_01': <String>['Tail_01', 'Tail', 'tail'],
+    'Tail_02': <String>['Tail_02', 'Tail.Mid', 'TailTip'],
+    'Tail_03': <String>['Tail_03', 'Tail.End', 'TailTipEnd'],
+  };
+
   final Map<String, Node> _joints = <String, Node>{};
   final Map<String, vm.Vector3> _basePositions = <String, vm.Vector3>{};
   final Map<String, vm.Quaternion> _baseRotations = <String, vm.Quaternion>{};
@@ -30,66 +40,63 @@ class DogSecondaryMotion extends Component {
   double _tailVelocity = 0;
   double _tailOffset = 0;
 
-  static const _jointNames = <String>[
-    'Chest',
-    'Spine',
-    'Ear_L',
-    'Ear_R',
-    'Tail_01',
-    'Tail_02',
-    'Tail_03',
-  ];
+  /// Optional runtime multiplier for behavior states such as sleep or happy.
+  /// The value is clamped so a behavior decision cannot produce extreme poses.
+  double activityMultiplier = 1.0;
 
   @override
   void onAttach() {
     _baseRootScale = node.scale;
-    for (final name in _jointNames) {
-      final joint = node.name == name ? node : node.getChildByName(name);
+
+    for (final entry in _aliases.entries) {
+      final joint = _findByAnyName(entry.value);
       if (joint == null) continue;
-      _joints[name] = joint;
-      _basePositions[name] = joint.position;
-      _baseRotations[name] = joint.rotation;
+      _joints[entry.key] = joint;
+      _basePositions[entry.key] = joint.position;
+      _baseRotations[entry.key] = joint.rotation;
     }
   }
 
   @override
   void update(double deltaSeconds) {
-    // Clamp unusually large frame gaps so a paused/resumed app does not snap.
+    // Prevent a paused/resumed app from jumping several seconds in one frame.
     final dt = deltaSeconds.clamp(0.0, 0.05);
     _time += dt;
+    final strength = activityMultiplier.clamp(0.0, 1.5) * intensity;
 
-    if (breathing) _updateBreathing();
-    if (ears) _updateEars();
-    if (tail) _updateTail(dt);
+    if (breathing) _updateBreathing(strength);
+    if (ears) _updateEars(strength);
+    if (tail) _updateTail(dt, strength);
   }
 
-  void _updateBreathing() {
+  void _updateBreathing(double strength) {
     final chest = _joints['Chest'];
     final spine = _joints['Spine'];
-    final breath = math.sin(_time * 2.15) * 0.012 * intensity;
-    final lift = math.sin(_time * 2.15 + 0.35) * 0.006 * intensity;
+    final phase = _time * 2.15;
+    final breath = math.sin(phase) * 0.012 * strength;
+    final lift = math.sin(phase + 0.35) * 0.006 * strength;
 
     if (chest != null) {
       final base = _basePositions['Chest']!;
       chest.position = base + vm.Vector3(0, lift, 0);
       chest.rotation = _baseRotations['Chest']! *
           vm.Quaternion.axisAngle(vm.Vector3(1, 0, 0), breath);
-    }
-    if (spine != null) {
+    } else if (spine != null) {
       spine.rotation = _baseRotations['Spine']! *
           vm.Quaternion.axisAngle(vm.Vector3(1, 0, 0), breath * 0.45);
-    }
-    if (chest == null && spine == null && _baseRootScale != null) {
+    } else if (_baseRootScale != null) {
+      // Fallback for an unrigged prototype: a barely visible whole-body pulse.
       final scale = _baseRootScale!.clone();
-      scale.scale(1.0 + math.sin(_time * 2.15) * 0.006 * intensity);
+      scale.scale(1.0 + math.sin(phase) * 0.006 * strength);
       node.scale = scale;
     }
   }
 
-  void _updateEars() {
-    final sway = math.sin(_time * 2.7 + 0.4) * 0.055 * intensity;
+  void _updateEars(double strength) {
+    final sway = math.sin(_time * 2.7 + 0.4) * 0.055 * strength;
     final left = _joints['Ear_L'];
     final right = _joints['Ear_R'];
+
     if (left != null) {
       left.rotation = _baseRotations['Ear_L']! *
           vm.Quaternion.axisAngle(vm.Vector3(0, 0, 1), sway);
@@ -100,24 +107,40 @@ class DogSecondaryMotion extends Component {
     }
   }
 
-  void _updateTail(double dt) {
-    // A lightly damped spring gives the tail delayed follow-through instead
-    // of a perfectly synchronous sine wave.
-    final target = math.sin(_time * 1.9) * 0.32 * intensity;
+  void _updateTail(double dt, double strength) {
+    // A damped spring gives the tail delayed follow-through rather than a
+    // perfectly synchronous sine wave.
+    final target = math.sin(_time * 1.9) * 0.32 * strength;
     final force = (target - _tailOffset) * 18.0;
     _tailVelocity += force * dt;
     _tailVelocity *= math.pow(0.18, dt).toDouble();
     _tailOffset += _tailVelocity * dt;
 
     for (var i = 1; i <= 3; i++) {
-      final joint = _joints['Tail_0$i'];
-      if (joint == null) continue;
-      final base = _baseRotations['Tail_0$i']!;
+      final key = 'Tail_0$i';
+      final joint = _joints[key];
+      final base = _baseRotations[key];
+      if (joint == null || base == null) continue;
+
       final phase = i * 0.08;
       joint.rotation = base * vm.Quaternion.axisAngle(
         vm.Vector3(0, 1, 0),
         (_tailOffset + phase) * (1.0 - i * 0.12),
       );
     }
+  }
+
+  Node? _findByAnyName(List<String> names) {
+    final wanted = names.toSet();
+    Node? visit(Node current) {
+      if (wanted.contains(current.name)) return current;
+      for (final child in current.children) {
+        final match = visit(child);
+        if (match != null) return match;
+      }
+      return null;
+    }
+
+    return visit(node);
   }
 }
