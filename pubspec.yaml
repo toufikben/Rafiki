@@ -1,0 +1,49 @@
+name: rafiq
+description: A virtual pet companion that grows with you.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.5.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  flutter_riverpod: 2.6.1
+  isar: 3.1.0+1
+  isar_flutter_libs: 3.1.0+1
+  path_provider: ^2.1.4
+
+  flutter_overlay_window: 0.5.0
+
+  in_app_purchase: 3.3.0
+  google_mobile_ads: 5.1.0
+
+  flutter_local_notifications: 21.0.0
+  audioplayers: 6.6.0
+  google_fonts: ^6.2.1
+  flutter_scene: ^0.23.0
+  flutter_gemma: ^1.8.4
+  flutter_gemma_litertlm: ^1.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  build_runner: ^2.4.13
+  isar_generator: 3.1.0+1
+  flutter_lints: ^5.0.0
+
+dependency_overrides:
+  isar_flutter_libs:
+    path: third_party/isar_flutter_libs
+
+flutter:
+  uses-material-design: true
+  generate: true
+  assets:
+    - assets/sounds/
+    - assets/models/
+    - flutter_scene_generated/

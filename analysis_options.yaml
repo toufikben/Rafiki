@@ -1,0 +1,16 @@
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    prefer_const_constructors: true
+    avoid_print: false
+    prefer_single_quotes: false
+
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - build/**
+    - android/**
+    - ios/**
+  errors:
+    invalid_annotation_target: ignore

@@ -1,0 +1,40 @@
+{
+  "character": "dog",
+  "style": "stylized_cartoon_3d",
+  "reference": "reference_images/reference_2.jpg",
+  "runtime": "flutter_scene",
+  "target_platform": "android",
+  "mesh_budget": {
+    "target_triangles": 12000,
+    "maximum_triangles": 18000,
+    "texture_resolution": "2048x2048",
+    "preferred_texture_format": "KTX2"
+  },
+  "materials": ["white_fur", "black_patch", "warm_tan_patch", "nose", "eye_white", "eye_iris"],
+  "skeleton": [
+    "Root", "Hip", "Spine", "Chest", "Neck", "Head",
+    "Jaw", "Eye_L", "Eye_R", "Eyelid_L", "Eyelid_R",
+    "Ear_L", "Ear_R", "Tail_01", "Tail_02", "Tail_03",
+    "Leg_FL", "Leg_FR", "Leg_BL", "Leg_BR",
+    "Paw_FL", "Paw_FR", "Paw_BL", "Paw_BR"
+  ],
+  "animation_clips": [
+    {"name": "Idle", "loop": true, "crossfade_ms": 220},
+    {"name": "Walk", "loop": true, "crossfade_ms": 180},
+    {"name": "Run", "loop": true, "crossfade_ms": 140},
+    {"name": "Sit", "loop": false, "crossfade_ms": 180},
+    {"name": "Stand", "loop": false, "crossfade_ms": 180},
+    {"name": "Sleep", "loop": true, "crossfade_ms": 300},
+    {"name": "Eat", "loop": true, "crossfade_ms": 160},
+    {"name": "Sniff", "loop": false, "crossfade_ms": 160},
+    {"name": "PlayBow", "loop": false, "crossfade_ms": 150},
+    {"name": "HappyJump", "loop": false, "crossfade_ms": 120},
+    {"name": "SadHeadDown", "loop": true, "crossfade_ms": 240}
+  ],
+  "secondary_motion": {
+    "ears": "spring_damped",
+    "tail": "spring_damped",
+    "chest": "breathing_driver",
+    "eyes": "look_at_pointer"
+  }
+}
