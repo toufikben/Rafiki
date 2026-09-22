@@ -42,6 +42,8 @@ This document records the implementation state at the time of the GitHub upload.
 
 **Current acceptance:** GLB loading, ground placement, environment rendering, fallback behavior and static material rendering are verified by code/build checks. Android visual QA, authored locomotion and final visual matching remain pending.
 
+The detailed production sequence, rig contract, animation list, validation gates and commit plan are documented in [`FINAL_3D_MODEL_ANIMATION_PLAN.md`](FINAL_3D_MODEL_ANIMATION_PLAN.md).
+
 ### Batch 9 — Model management and chat quality
 
 **Priority: high.** Add a settings flow for installing/importing a small `.litertlm` model. Show storage requirement, download progress, cancellation, retry, model deletion, active-model status and a Wi-Fi recommendation. Add conversation history limits, response cancellation, language detection, prompt injection resistance, and explicit privacy messaging.
@@ -82,7 +84,7 @@ This document records the implementation state at the time of the GitHub upload.
 
 ## Latest verification
 
-The repository passed `flutter analyze` with no issues and produced `build/app/outputs/flutter-apk/app-debug.apk` successfully. The latest GitHub commit is `9db07e3` (`Integrate original 3D dog renderer`). The debug APK is a development artifact only; physical-device visual and performance verification is still required.
+The repository passed `flutter analyze` with no issues and produced `build/app/outputs/flutter-apk/app-debug.apk` successfully. The latest GitHub commit is `fab278d` (`Update roadmap after 3D renderer verification`). The debug APK is a development artifact only; physical-device visual and performance verification is still required.
 
 ## Release gates
 
