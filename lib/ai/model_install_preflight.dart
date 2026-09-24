@@ -77,7 +77,9 @@ class ModelInstallPreflight {
       request.followRedirects = true;
       request.maxRedirects = 5;
       final response = await request.close().timeout(const Duration(seconds: 10));
-      final finalUri = response.request?.uri ?? uri;
+      final finalUri = response.redirects.isEmpty
+          ? uri
+          : response.redirects.last.location;
       if (!_isAllowedModelUri(finalUri)) {
         return ModelPreflightResult(
           valid: false,
