@@ -52,7 +52,7 @@ The Android-focused bone-weight, PBR material, texture, memory and GPU budget is
 
 **Status: implemented.** The home scene now overlays a live status card above the animal viewport. It shows the current mood from `PetState`, the selected movement clip from `DogAnimationController`, and the 3D scene state (`Loading`, `Prototype ready`, `Fallback active`, or `2D renderer`). `DogSceneView` reports its load state to the HUD while preserving the existing 2D fallback when the GLB is unavailable.
 
-The same viewport now exposes a manual test-controls button. It can temporarily override the mood and select any contract clip directly (`Idle`, `Walk`, `Run`, `Play`, `Sleep`, `Eat`, `Drink`, `Happy`, or `Sad`), sends the selected clip to the runtime when authored animation data exists, and includes a reset action that returns to the automatic behavior loop.
+The same viewport now exposes a manual test-controls button. It can temporarily override the mood and select any contract clip directly (`Idle`, `Walk`, `Run`, `Play`, `Sleep`, `Eat`, `Drink`, `Happy`, or `Sad`), sends the selected clip to the runtime when authored animation data exists, and includes a reset action that returns to the automatic behavior loop. Accessibility labels/tooltips were added to the manual-control switch, chat send/stop action, pet action buttons, and installed-model deletion action; GitHub Actions verified this change with analysis, tests, and a debug APK.
 
 ### Batch 9 — Model management and chat quality
 
@@ -74,7 +74,7 @@ The same viewport now exposes a manual test-controls button. It can temporarily 
 
 ### Batch 11 — Production hardening
 
-**Status: in progress. Priority: high.** Added build-time `--dart-define` configuration for AdMob and purchase identifiers, release fail-closed behavior when production identifiers are absent, a user-facing privacy and terms screen, automated coverage for the release configuration boundary, and a GitHub Actions pipeline that analyzes/tests then builds and uploads debug and release APK artifacts. The local debug APK was rebuilt and passed archive integrity inspection; details are in [`docs/DEBUG_APK_INSPECTION.md`](docs/DEBUG_APK_INSPECTION.md). Production identifiers, consent provider choice, crash-reporting provider, and release signing remain intentionally external inputs and are not invented or committed to the repository.
+**Status: in progress. Priority: high.** Added build-time `--dart-define` configuration for AdMob and purchase identifiers, release fail-closed behavior when production identifiers are absent, a user-facing privacy and terms screen, automated coverage for the release configuration boundary, accessibility labels for key pet controls, and a GitHub Actions pipeline that analyzes/tests then builds and uploads debug and release APK artifacts. GitHub Actions run `36053146407` for commit `7ab6aec` passed analysis/tests and debug APK generation/upload; the release APK job remains an expected failure until production signing/secrets are configured. The local debug APK was rebuilt and passed archive integrity inspection; details are in [`docs/DEBUG_APK_INSPECTION.md`](docs/DEBUG_APK_INSPECTION.md). Production identifiers, consent provider choice, crash-reporting provider, and release signing remain intentionally external inputs and are not invented or committed to the repository.
 
 **Remaining work:** provide real production identifiers through the release environment, select and configure a consent/crash-reporting provider, complete localization and accessibility review, and create a release-signed build outside the repository. The debug build path is ready for APK inspection; the CI release job is allowed to fail until signing and secrets are configured. The build commands and secret boundary are documented in [`docs/RELEASE_BUILD.md`](docs/RELEASE_BUILD.md).
 
@@ -104,7 +104,7 @@ The same viewport now exposes a manual test-controls button. It can temporarily 
 
 ## Latest verification
 
-The repository's latest successful verification passed `flutter analyze`, 32 automated tests sequentially, and `flutter build apk --debug`, producing `build/app/outputs/flutter-apk/app-debug.apk` (312 MB in the Batch 9 build). A 2026-09-24 source review found 33 test declarations across seven test files, so the previous 32-test count is now stale and must be rerun with Flutter before being reported as passed. Flutter is not installed in the current execution environment (`flutter: command not found`, exit 127); no new analysis, test, or APK result is claimed from this review. The APK is still a development artifact only; physical-device visual and performance verification is still required.
+The latest GitHub Actions verification for commit `7ab6aec` (run `36053146407`) passed Isar source generation, `flutter analyze`, the automated test suite, and `flutter build apk --debug`; the debug APK was uploaded as an artifact. The release APK job is intentionally allowed to fail until production identifiers and release signing are configured. A 2026-09-24 source review found 33 test declarations across seven test files. Physical-device visual, accessibility, audio, and performance verification is still required.
 
 ## Release gates
 
