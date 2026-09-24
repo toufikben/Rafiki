@@ -49,7 +49,11 @@ class ManualTestControls extends StatelessWidget {
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ),
-                Switch(value: enabled, onChanged: onToggle),
+                Semantics(
+                  label: 'Enable manual test controls',
+                  toggled: enabled,
+                  child: Switch(value: enabled, onChanged: onToggle),
+                ),
               ],
             ),
             const Text(

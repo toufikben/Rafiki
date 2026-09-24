@@ -389,6 +389,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             dense: true,
                             title: Text(model),
                             trailing: IconButton(
+                              tooltip: 'Delete model',
                               icon: const Icon(Icons.delete_outline),
                               onPressed: busy
                                   ? null

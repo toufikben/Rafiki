@@ -374,6 +374,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           ),
                         ),
                         IconButton(
+                          tooltip: loading ? 'Stop response' : 'Send message',
                           onPressed: loading
                               ? () async {
                                   await ref
@@ -428,6 +429,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         IconButton(
           onPressed: onTap,
           icon: Icon(icon),
+          tooltip: label,
           style: IconButton.styleFrom(
             backgroundColor: const Color(0xFFFFB870).withValues(alpha: 0.2),
             padding: const EdgeInsets.all(12),
