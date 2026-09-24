@@ -67,5 +67,29 @@ void main() {
       expect(result.valid, isFalse);
       expect(result.reason, contains('.litertlm'));
     });
+
+    test('accepts HTTP(S) model URLs with query parameters', () async {
+      expect(
+        ModelInstallPreflight.isAllowedNetworkUrl(
+          'https://models.example.test/pet.litertlm?download=1',
+        ),
+        isTrue,
+      );
+    });
+
+    test('rejects non-HTTP(S) and non-litertlm URI shapes', () async {
+      expect(
+        ModelInstallPreflight.isAllowedNetworkUrl(
+          'https://models.example.test/pet.bin',
+        ),
+        isFalse,
+      );
+      expect(
+        ModelInstallPreflight.isAllowedNetworkUrl(
+          'ftp://models.example.test/pet.litertlm',
+        ),
+        isFalse,
+      );
+    });
   });
 }

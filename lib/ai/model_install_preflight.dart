@@ -63,10 +63,7 @@ class ModelInstallPreflight {
     int minimumBytes = minimumModelBytes,
   }) async {
     final uri = Uri.tryParse(value.trim());
-    if (uri == null ||
-        uri.host.isEmpty ||
-        (uri.scheme != 'https' && uri.scheme != 'http') ||
-        !uri.path.toLowerCase().endsWith('.litertlm')) {
+    if (uri == null || !isAllowedNetworkUrl(value)) {
       return ModelPreflightResult(
         valid: false,
         source: value,
@@ -80,6 +77,14 @@ class ModelInstallPreflight {
       request.followRedirects = true;
       request.maxRedirects = 5;
       final response = await request.close().timeout(const Duration(seconds: 10));
+      final finalUri = response.request?.uri ?? uri;
+      if (!_isAllowedModelUri(finalUri)) {
+        return ModelPreflightResult(
+          valid: false,
+          source: value,
+          reason: 'The model URL redirected to a non-HTTP(S) .litertlm URL.',
+        );
+      }
       final size = response.contentLength > 0 ? response.contentLength : null;
       if (response.statusCode >= 400 && response.statusCode != 405) {
         return ModelPreflightResult(
@@ -111,8 +116,24 @@ class ModelInstallPreflight {
         source: value,
         reason: 'Could not reach the model URL: $error',
       );
+    } on Exception catch (error) {
+      return ModelPreflightResult(
+        valid: false,
+        source: value,
+        reason: 'Could not validate the model URL: $error',
+      );
     } finally {
       client.close(force: true);
     }
   }
+
+  static bool isAllowedNetworkUrl(String value) {
+    final uri = Uri.tryParse(value.trim());
+    return uri != null && _isAllowedModelUri(uri);
+  }
+
+  static bool _isAllowedModelUri(Uri uri) =>
+      uri.host.isNotEmpty &&
+      (uri.scheme == 'https' || uri.scheme == 'http') &&
+      uri.path.toLowerCase().endsWith('.litertlm');
 }
