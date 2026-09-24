@@ -1,6 +1,6 @@
 # Rafiq roadmap / خارطة طريق رفيق
 
-This document records the implementation state at the time of the GitHub upload. Statuses describe the repository, not a promise of store approval or a completed visual asset pipeline. Last verified: 2026-09-22.
+This document records the implementation state at the time of the GitHub upload. Statuses describe the repository, not a promise of store approval or a completed visual asset pipeline. Last repository sync review: 2026-09-24. The latest successful Flutter verification remains the run recorded on 2026-09-22.
 
 ## Completed batches
 
@@ -104,7 +104,7 @@ The same viewport now exposes a manual test-controls button. It can temporarily 
 
 ## Latest verification
 
-The repository passed `flutter analyze` with no issues, all 32 automated tests passed sequentially, and `flutter build apk --debug` produced `build/app/outputs/flutter-apk/app-debug.apk` (312 MB in the Batch 9 build). The verification environment uses Flutter 3.47.5, Dart 3.13.4, Android SDK 36, NDK 28.2.13676358 and JDK 21. The APK is still a development artifact only; physical-device visual and performance verification is still required.
+The repository's latest successful verification passed `flutter analyze`, 32 automated tests sequentially, and `flutter build apk --debug`, producing `build/app/outputs/flutter-apk/app-debug.apk` (312 MB in the Batch 9 build). A 2026-09-24 source review found 33 test declarations across seven test files, so the previous 32-test count is now stale and must be rerun with Flutter before being reported as passed. Flutter is not installed in the current execution environment (`flutter: command not found`, exit 127); no new analysis, test, or APK result is claimed from this review. The APK is still a development artifact only; physical-device visual and performance verification is still required.
 
 ## Release gates
 
