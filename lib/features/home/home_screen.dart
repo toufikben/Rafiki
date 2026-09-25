@@ -335,7 +335,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       'Local pet chat',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'On-device only. Works offline; replies improve when a local model is installed from Settings.',
+                      textAlign: TextAlign.center,
+                    ),
                     const SizedBox(height: 8),
+                    if (messages.isEmpty && !loading)
+                      const Text(
+                        'Say hello to your pet to begin.',
+                        textAlign: TextAlign.center,
+                      ),
+                    if (messages.isEmpty && !loading) const SizedBox(height: 8),
                     ConstrainedBox(
                       constraints: const BoxConstraints(maxHeight: 280),
                       child: ListView(
@@ -403,23 +414,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 
   Widget _stat(String emoji, double value) {
-    return Column(
-      children: [
-        Text(emoji, style: const TextStyle(fontSize: 20)),
-        const SizedBox(height: 4),
-        SizedBox(
-          width: 40,
-          child: LinearProgressIndicator(
-            value: value,
-            backgroundColor: Colors.white12,
-            color: value > 0.5
-                ? Colors.green
-                : value > 0.2
-                    ? Colors.orange
-                    : Colors.red,
+    final percent = (value.clamp(0.0, 1.0) * 100).round();
+    return Semantics(
+      label: '$emoji $percent percent',
+      value: '$percent%',
+      child: Column(
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 20)),
+          const SizedBox(height: 4),
+          SizedBox(
+            width: 40,
+            child: LinearProgressIndicator(
+              value: value,
+              backgroundColor: Colors.white12,
+              color: value > 0.5
+                  ? Colors.green
+                  : value > 0.2
+                      ? Colors.orange
+                      : Colors.red,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

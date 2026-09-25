@@ -23,6 +23,8 @@ flutter build apk --release \
 
 A release build without production identifiers fails closed for ads and purchases. The current Android Gradle configuration still uses the debug signing configuration as a development placeholder; a store release must use a keystore and signing secrets outside the repository.
 
+`android/app/src/main/AndroidManifest.xml` currently declares Google's sample AdMob application ID (`ca-app-pub-3940256099942544~3347511713`) for debug builds. Replace that `APPLICATION_ID` meta-data value with the production AdMob app ID at release time; do not commit the production value. The in-code ad unit and purchase product IDs continue to arrive via the `--dart-define` values above.
+
 ## GitHub Actions
 
 `.github/workflows/flutter-build.yml` runs analysis and tests, then builds and uploads both debug and release APK artifacts. The release job is intentionally allowed to fail while signing and production secrets are not configured. Configure these repository or environment secrets before a real release build:

@@ -14,6 +14,9 @@
         <meta-data
             android:name="io.flutter.embedding.android.EnableFlutterGPU"
             android:value="true" />
+        <!-- Release gate: this is Google's sample AdMob app ID for debug builds.
+             The release owner must replace it with the production AdMob app ID
+             (see docs/RELEASE_BUILD.md). Never commit production IDs here. -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-3940256099942544~3347511713" />

@@ -29,20 +29,29 @@ class PetStatusHud extends StatelessWidget {
           runSpacing: 8,
           alignment: WrapAlignment.center,
           children: [
-            _StatusChip(
-              icon: _moodIcon(pet.mood),
-              label: 'Mood: ${_titleCase(pet.mood)}',
-              color: _moodColor(pet.mood),
+            Semantics(
+              label: 'Pet mood ${_titleCase(pet.mood)}',
+              child: _StatusChip(
+                icon: _moodIcon(pet.mood),
+                label: 'Mood: ${_titleCase(pet.mood)}',
+                color: _moodColor(pet.mood),
+              ),
             ),
-            _StatusChip(
-              icon: Icons.directions_run,
-              label: 'Motion: ${_titleCase(animationClip)}',
-              color: Colors.lightBlueAccent,
+            Semantics(
+              label: 'Current motion ${_titleCase(animationClip)}',
+              child: _StatusChip(
+                icon: Icons.directions_run,
+                label: 'Motion: ${_titleCase(animationClip)}',
+                color: Colors.lightBlueAccent,
+              ),
             ),
-            _StatusChip(
-              icon: _sceneIcon(sceneStatus),
-              label: '3D: ${_sceneLabel(sceneStatus)}',
-              color: _sceneColor(sceneStatus),
+            Semantics(
+              label: '3D scene status ${_sceneLabel(sceneStatus)}',
+              child: _StatusChip(
+                icon: _sceneIcon(sceneStatus),
+                label: '3D: ${_sceneLabel(sceneStatus)}',
+                color: _sceneColor(sceneStatus),
+              ),
             ),
           ],
         ),
