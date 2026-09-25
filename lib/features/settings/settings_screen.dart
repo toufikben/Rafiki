@@ -461,7 +461,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
     if (confirmed == true) {
       await ref.read(petProvider.notifier).deleteAllData();
-      if (mounted) {
+      if (context.mounted) {
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
     }
