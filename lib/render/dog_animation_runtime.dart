@@ -34,7 +34,8 @@ class DogAnimationRuntime extends Component {
   /// Name matching tolerates exporter case/whitespace differences.
   void select(String name, {bool? loop}) {
     final resolved = resolveDogClipName(_clips.keys, name);
-    final next = resolved == null ? null : _clips[resolved];
+    if (resolved == null) return;
+    final next = _clips[resolved];
     if (next == null || identical(next, _active)) return;
     next.loop = loop ?? _isLooping(normalizeDogClipName(resolved));
     next.replay();
