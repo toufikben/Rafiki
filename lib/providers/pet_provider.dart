@@ -25,9 +25,13 @@ class PetNotifier extends StateNotifier<PetState?> {
   Future<void> _init() async {
     await _ai.init();
     if (!Database.isReady) await Database.init();
-    state = await Database.getPet();
-    if (state != null) {
-      _lastUpdate = state!.lastUpdated;
+    final loaded = await Database.getPet();
+    // A pet created while loading (onboarding racing initialization) wins
+    // over the stale snapshot read from disk.
+    if (state != null) return;
+    state = loaded;
+    if (loaded != null) {
+      _lastUpdate = loaded.lastUpdated;
       _startLoop();
     }
   }
