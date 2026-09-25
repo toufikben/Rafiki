@@ -1,0 +1,53 @@
+{
+  "project": "RAFIQ/RAFIKI",
+  "as_of": "2026-09-25",
+  "base_sha": "0cfaa9711106e68eb48791227b94f049e150581b",
+  "ci_latest_run": {"id": "36055010605", "branch": "main", "result": "success"},
+  "previous_conversation": {
+    "url": "https://chatgpt.com/share/6ab5111c-fec4-83e9-bf68-643784a4c66b",
+    "accessible": true,
+    "relevant_to_rafiq": false,
+    "classification": "ACCESSIBLE_BUT_NOT_RELEVANT",
+    "note": "Conversation concerns SHIELDRA / Ai_super_cleaner (Kotlin/Compose, AAD crypto gates); 0 hits for rafiq/pet/dog/flutter keywords across 46,736 chars. No requirements imported. Nothing invented."
+  },
+  "batches": [
+    {"id": 1, "name": "Flutter foundation & core pet loop", "roadmap_claim": "complete", "actual": "BROKEN_PARTIAL", "evidence": "Provider notification bug pet_provider.dart:54; delete-all undone; startup ordering", "next": "AI fix P0 notification + delete-all + startup"},
+    {"id": 2, "name": "3D scene foundation", "roadmap_claim": "complete (vertical slice)", "actual": "PARTIAL", "evidence": "Scene not disposed dog_scene_view.dart; static init per instance", "next": "AI fix disposal; device visual QA gated"},
+    {"id": 3, "name": "Secondary animal motion", "roadmap_claim": "complete", "actual": "CODE_COMPLETE", "evidence": "Procedural motion present, fail-safe; math untested", "next": "optional tests"},
+    {"id": 4, "name": "Environment rendering", "roadmap_claim": "complete", "actual": "CODE_COMPLETE", "evidence": "Implemented, switchable", "next": "device frame-time QA (Batch 10 gate)"},
+    {"id": 5, "name": "Interactive audio", "roadmap_claim": "complete (slice)", "actual": "PARTIAL", "evidence": "Mixer+cooldowns tested; sound toggle not persisted settings_screen.dart:52; playMeow for dogs home_screen.dart:161", "next": "AI fix persistence + species-correct cues"},
+    {"id": 6, "name": "Local adaptive intelligence", "roadmap_claim": "complete", "actual": "CODE_COMPLETE", "evidence": "LearningProfile tested; BehaviorType.eating unreachable; mood 'happy' dead branches", "next": "low-priority cleanup"},
+    {"id": 7, "name": "Integrated vitals & local chat", "roadmap_claim": "complete (slice)", "actual": "PARTIAL", "evidence": "Needs/chat fallback tested; chat sheet races home_screen.dart:295-403; http:// accepted model_install_preflight.dart:139", "next": "AI fix HTTPS-only + chat lifecycle"},
+    {"id": 8, "name": "Final model & animation production", "roadmap_claim": "implementation gate closed; production-asset gate pending", "actual": "CODE_COMPLETE_EXTERNAL_GATE", "evidence": "dog_rig_manifest.json = prototype_static_glb; runtime clip binder no-op without authored clips", "next": "licensed-asset reuse audit; USER_DEVICE_TEST_REQUIRED visual QA", "external": true},
+    {"id": 9, "name": "Model management & chat quality", "roadmap_claim": "in progress; core slice implemented", "actual": "PARTIAL", "evidence": "Manager/preflight/confirmation/Wi-Fi warning implemented; roadmap 'no download/import screen' gap row is STALE (screen exists)", "next": "AI fix HTTPS-only; device failure-injection gated; sync stale doc", "external": true},
+    {"id": 10, "name": "Behavioral validation & performance", "roadmap_claim": "deterministic closeout done; field to user", "actual": "CODE_COMPLETE_EXTERNAL_GATE", "evidence": "33 deterministic tests CI-green; no CPU/GPU/battery/latency measurement exists", "next": "USER_DEVICE_TEST_REQUIRED field smoke test", "external": true},
+    {"id": 11, "name": "Production hardening", "roadmap_claim": "in progress", "actual": "PARTIAL", "evidence": "dart-define fail-closed + CI artifacts done; debug-key release signing build.gradle:32; test AdMob App ID manifest:17-19; premium not wired end-to-end; l10n unused", "next": "AI: premium wiring, AdMob plumbing, l10n adoption; EXTERNAL: keystore, real IDs, consent/crash provider", "external": true},
+    {"id": 12, "name": "Store release & post-launch learning", "roadmap_claim": "medium priority", "actual": "NOT_STARTED", "evidence": "Only docs present", "next": "gated on 8/10/11"}
+  ],
+  "beta_readiness": {"claim": "not yet released", "actual": "EXTERNAL_GATE", "blocker": "real-device smoke test"},
+  "stale_docs": [
+    "ROADMAP 'Known remaining gaps': 'No model download/import screen' contradicts Batch 9 text and shipped code",
+    "README 'Batches 1-7 implemented and pass verification' overstates functional completeness (R01/R02/R09 uncaught by tests)"
+  ],
+  "external_gates": [
+    "Licensed production rigged dog.glb + authored clips",
+    "Physical-device visual/perf/audio QA",
+    "Release keystore + Play Console + production AdMob/IAP IDs",
+    "Consent / crash-reporting provider decision",
+    "LocalLLM model binary selection & licensing"
+  ],
+  "ai_executable_now": [
+    "R01 provider notification fix",
+    "R02 delete-all real reset",
+    "R03 HTTPS-only model preflight",
+    "R07 startup resilience + pet-before-LLM load",
+    "R06 premium entitlement wiring",
+    "R08 scene disposal",
+    "R09 chat sheet lifecycle",
+    "R15 audio persistence + species cues",
+    "R10 l10n adoption",
+    "R14 retention notifications",
+    "R11 tests for the above",
+    "R16 dependency/repo hygiene"
+  ]
+}
