@@ -7,6 +7,7 @@ import 'package:isar/isar.dart';
 import 'package:rafiq/data/database.dart';
 import 'package:rafiq/providers/pet_provider.dart';
 import 'package:rafiq/services/ad_service.dart';
+import 'package:rafiq/services/purchase_service.dart';
 
 void main() {
   late Directory directory;
@@ -89,6 +90,9 @@ void main() {
     AdService.setPremium(false);
 
     // Fresh container on the same database emulates a cold start.
+    // The static flag is still false here: the grant bypassed
+    // PurchaseService, so any premium seen below comes from disk alone.
+    expect(PurchaseService.isPremium, isFalse);
     final second = bootContainer();
     await second.read(petProvider.notifier).initialized;
 
