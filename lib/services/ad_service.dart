@@ -9,6 +9,8 @@ class AdService {
   static bool _isPremium = false;
   static int _feedCount = 0;
 
+  static bool get isPremium => _isPremium;
+
   static void setPremium(bool value) {
     _isPremium = value;
     if (value) {

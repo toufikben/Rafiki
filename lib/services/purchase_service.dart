@@ -15,6 +15,16 @@ class PurchaseService {
   static List<ProductDetails> _products = [];
   static bool _isPremium = false;
 
+  static final StreamController<void> _premiumGrantController =
+      StreamController<void>.broadcast();
+
+  /// Emits whenever a purchase or restore grants premium entitlement.
+  ///
+  /// Broadcast on purpose: the entitlement owner (PetNotifier) may not exist
+  /// yet when a restore lands during [init]; those consumers catch up via
+  /// [isPremium] after subscribing.
+  static Stream<void> get premiumGrants => _premiumGrantController.stream;
+
   static bool get isPremium => _isPremium;
   static List<ProductDetails> get products => _products;
 
@@ -37,7 +47,13 @@ class PurchaseService {
     for (final p in purchases) {
       if (p.status == PurchaseStatus.purchased ||
           p.status == PurchaseStatus.restored) {
-        if (p.productID == premiumId) _isPremium = true;
+        // Both SKUs grant the same local entitlement flag; subscription
+        // expiry/renewal validation requires server-side receipt checking
+        // and is deliberately out of scope for the offline wiring.
+        if (p.productID == premiumId || p.productID == monthlyId) {
+          _isPremium = true;
+          _premiumGrantController.add(null);
+        }
       }
       if (p.pendingCompletePurchase) {
         _iap.completePurchase(p);
@@ -60,5 +76,6 @@ class PurchaseService {
 
   static void dispose() {
     _sub?.cancel();
+    _premiumGrantController.close();
   }
 }
