@@ -44,4 +44,44 @@ class PetState {
 
   bool isPremium = false;
   DateTime? premiumSince;
+
+  /// Snapshot copy used to publish state changes to watchers.
+  ///
+  /// Riverpod's StateNotifier suppresses notifications when the assigned
+  /// instance is identical to the previous one, and the simulation mutates
+  /// this collection in place. Publishing a clone keeps the Isar [id] while
+  /// guaranteeing listeners observe every update.
+  PetState clone() {
+    return PetState()
+      ..id = id
+      ..name = name
+      ..species = species
+      ..birthDate = birthDate
+      ..lastInteraction = lastInteraction
+      ..lastFed = lastFed
+      ..lastPlayed = lastPlayed
+      ..lastUpdated = lastUpdated
+      ..hunger = hunger
+      ..energy = energy
+      ..happiness = happiness
+      ..cleanliness = cleanliness
+      ..affection = affection
+      ..hydration = hydration
+      ..stress = stress
+      ..sleepDebt = sleepDebt
+      ..evolutionStage = evolutionStage
+      ..experiencePoints = experiencePoints
+      ..trustLevel = trustLevel
+      ..posX = posX
+      ..posY = posY
+      ..velocityX = velocityX
+      ..velocityY = velocityY
+      ..currentBehavior = currentBehavior
+      ..mood = mood
+      ..totalInteractions = totalInteractions
+      ..learningProfileJson = learningProfileJson
+      ..learningSamples = learningSamples
+      ..isPremium = isPremium
+      ..premiumSince = premiumSince;
+  }
 }

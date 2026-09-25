@@ -1,0 +1,170 @@
+{
+  "project": "RAFIQ/RAFIKI",
+  "generated": "2026-09-25",
+  "base_sha": "0cfaa9711106e68eb48791227b94f049e150581b",
+  "risks": [
+    {
+      "id": "R01",
+      "title": "Provider never notifies on simulation tick (frozen UI)",
+      "severity": "critical",
+      "likelihood": "certain",
+      "evidence": "lib/providers/pet_provider.dart:54,111,118 assigns identical mutated PetState instance; StateNotifier suppresses == notification",
+      "impact": "Core pet vitals/mood UI does not update; users perceive a dead pet; undermines retention and every downstream feature",
+      "ai_fixable": true,
+      "status": "OPEN"
+    },
+    {
+      "id": "R02",
+      "title": "Delete All Data silently undone within 1s",
+      "severity": "critical",
+      "likelihood": "certain",
+      "evidence": "settings_screen.dart:462 calls Database.deleteAll() but PetNotifier tick re-saves in-memory pet; no provider reset/navigation",
+      "impact": "Privacy defect: user-requested data deletion does not take effect; store policy and legal exposure",
+      "ai_fixable": true,
+      "status": "OPEN"
+    },
+    {
+      "id": "R03",
+      "title": "Model URL preflight accepts plain http://",
+      "severity": "high",
+      "likelihood": "low",
+      "evidence": "lib/ai/model_install_preflight.dart:139",
+      "impact": "MITM can substitute on-device LLM binary; code execution surface via model file",
+      "ai_fixable": true,
+      "status": "OPEN"
+    },
+    {
+      "id": "R04",
+      "title": "Release build signed with debug keystore",
+      "severity": "critical",
+      "likelihood": "certain",
+      "evidence": "android/app/build.gradle buildTypes.release signingConfig = signingConfigs.debug",
+      "impact": "Hard store-release blocker; unpublishable artifact",
+      "ai_fixable": false,
+      "external_dependency": "USER keystore + secrets configuration",
+      "status": "OPEN"
+    },
+    {
+      "id": "R05",
+      "title": "AdMob test App ID hardcoded in manifest; interstitial falls back to test unit",
+      "severity": "high",
+      "likelihood": "certain",
+      "evidence": "AndroidManifest.xml:17-19 (ca-app-pub-3940256099942544~3347511713); lib/services/ad_service.dart:6-7",
+      "impact": "Real ads can never serve in release; AdMob policy violation if shipped; zero revenue",
+      "ai_fixable": "partial (plumb real ID via manifest placeholder; real ID is external input)",
+      "status": "OPEN"
+    },
+    {
+      "id": "R06",
+      "title": "Premium entitlement plumbing disconnected",
+      "severity": "high",
+      "likelihood": "certain",
+      "evidence": "AdService.setPremium has zero callers; PurchaseService._isPremium never persisted; PetState.isPremium dead; no buy UI; monthly product grants nothing",
+      "impact": "Paying users gain nothing and still see ads; refund/complaint risk; monetization non-functional",
+      "ai_fixable": true,
+      "status": "OPEN"
+    },
+    {
+      "id": "R07",
+      "title": "Startup init unguarded before runApp",
+      "severity": "high",
+      "likelihood": "medium",
+      "evidence": "main.dart awaits Database.init/MobileAds/PurchaseService without try-catch; PetNotifier loads pet only after LLM init",
+      "impact": "White-screen/ANR launch on init failure; onboarding flash for existing users; slow cold start",
+      "ai_fixable": true,
+      "status": "OPEN"
+    },
+    {
+      "id": "R08",
+      "title": "DogSceneView node cleanup on dispose (API-correct remediation unverified)",
+      "severity": "medium",
+      "likelihood": "medium",
+      "evidence": "lib/render/dog_scene_view.dart dispose() only nulls the runtime. VERIFIED via fscene.dev API docs (0.22.1): flutter_scene Scene has NO dispose() method; cleanup surface is remove/removeAll + node-level disposal. Earlier claim 'never disposes _scene' was inaccurate. initializeStaticResources() re-runs per widget instance.",
+      "impact": "Possible retained GPU/node references across scene recreations; magnitude unproven without device profiling",
+      "ai_fixable": "deferred - requires flutter_scene 0.23.0 API verification (Scene.removeAll/Node disposal semantics) plus on-device memory profiling; speculative change refused per mission rules",
+      "status": "OPEN_NEEDS_EVIDENCE"
+    },
+    {
+      "id": "R09",
+      "title": "Chat bottom sheet lifecycle races (dispose during in-flight send)",
+      "severity": "medium",
+      "likelihood": "medium",
+      "evidence": "home_screen.dart:295-403 controller.dispose vs pending chat future setSheetState; stop button clears loading while future pending",
+      "impact": "setState-after-dispose exceptions; confusing chat UX",
+      "ai_fixable": true,
+      "status": "OPEN"
+    },
+    {
+      "id": "R10",
+      "title": "l10n registered but unused; all UI strings hardcoded English",
+      "severity": "medium",
+      "likelihood": "certain",
+      "evidence": "AppLocalizations referenced only in lib/app.dart; ARB en/ar exist unused",
+      "impact": "Arabic-market product goal unmet; store listing claims vs reality mismatch",
+      "ai_fixable": true,
+      "status": "OPEN"
+    },
+    {
+      "id": "R11",
+      "title": "No test coverage of PetNotifier, BehaviorEngine, widgets, purchase/ad services",
+      "severity": "high",
+      "likelihood": "certain",
+      "evidence": "test/ has 7 files covering pure logic only; P0 bugs R01/R02 in untested layer",
+      "impact": "CI green masked frozen UI; regressions can recur silently",
+      "ai_fixable": true,
+      "status": "OPEN"
+    },
+    {
+      "id": "R12",
+      "title": "Production rigged dog.glb + authored clips absent (external asset gate)",
+      "severity": "high",
+      "likelihood": "certain",
+      "evidence": "assets/models/dog/dog_rig_manifest.json = prototype_static_glb; DogAnimationRuntime no-op without clips",
+      "impact": "Visual release gate cannot pass; product differentiation limited",
+      "ai_fixable": false,
+      "external_dependency": "licensed asset sourcing / production pipeline",
+      "status": "OPEN"
+    },
+    {
+      "id": "R13",
+      "title": "Physical-device QA (visual, audio latency, frame time, battery) not performed",
+      "severity": "high",
+      "likelihood": "certain",
+      "evidence": "No measurement artifacts in repo; roadmap assigns field execution to user",
+      "impact": "Beta/release gates unverifiable; performance claims unsubstantiated",
+      "ai_fixable": false,
+      "external_dependency": "USER_DEVICE_TEST_REQUIRED",
+      "status": "OPEN"
+    },
+    {
+      "id": "R14",
+      "title": "Notifications mostly dead (showMissingYou unused, nothing scheduled)",
+      "severity": "medium",
+      "likelihood": "certain",
+      "evidence": "notification_service.dart; grep shows no scheduler and no showMissingYou callers",
+      "impact": "Retention loop (bring-user-back) absent; a core virtual-pet mechanic",
+      "ai_fixable": true,
+      "status": "OPEN"
+    },
+    {
+      "id": "R15",
+      "title": "Sound setting not persisted; species-blind play sound",
+      "severity": "low",
+      "likelihood": "certain",
+      "evidence": "settings_screen.dart:52 local state only; home_screen.dart:161 playMeow for dogs",
+      "impact": "UX inconsistency; user preference lost on restart",
+      "ai_fixable": true,
+      "status": "OPEN"
+    },
+    {
+      "id": "R16",
+      "title": "Unused dependencies (hooks, google_fonts) and duplicate MainActivity path",
+      "severity": "low",
+      "likelihood": "certain",
+      "evidence": "pubspec.yaml; android/app/src/main/kotlin/com/rafiq/rafiq_base/MainActivity.kt vs com/rafiq/app/",
+      "impact": "APK size bloat; repo hygiene",
+      "ai_fixable": true,
+      "status": "OPEN"
+    }
+  ]
+}

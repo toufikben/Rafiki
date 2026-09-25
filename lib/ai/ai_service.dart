@@ -37,15 +37,26 @@ class AIService {
     return _localReaction(pet, context);
   }
 
+  /// Idempotent readiness gate. Callers that must mutate shared state
+  /// without an intervening await should hoist this to the top of the
+  /// operation so the only real async gap happens before they capture it.
+  Future<void> ensureReady() async {
+    if (!_ready) await init();
+  }
+
   /// Learns from a local interaction outcome. The reward is deliberately
   /// explicit and bounded so one accidental tap cannot permanently change
   /// the pet's personality.
-  Future<void> recordInteraction({
+  ///
+  /// This is synchronous on purpose: it mutates [pet] in place with no
+  /// await, so a caller can capture state, apply needs, record the
+  /// interaction, and publish a clone as one uninterruptible step. Use
+  /// [ensureReady] beforehand if initialization may still be pending.
+  void recordInteractionSync({
     required PetState pet,
     required String action,
     required double reward,
-  }) async {
-    if (!_ready) await init();
+  }) {
     final profile = LearningProfile.fromPet(pet);
     profile.learn(action, reward);
     profile.writeTo(pet);

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/models/pet_state.dart';
 import '../core/models/behavior_decision.dart';
@@ -24,9 +25,13 @@ class PetNotifier extends StateNotifier<PetState?> {
   Future<void> _init() async {
     await _ai.init();
     if (!Database.isReady) await Database.init();
-    state = await Database.getPet();
-    if (state != null) {
-      _lastUpdate = state!.lastUpdated;
+    final loaded = await Database.getPet();
+    // A pet created while loading (onboarding racing initialization) wins
+    // over the stale snapshot read from disk.
+    if (state != null) return;
+    state = loaded;
+    if (loaded != null) {
+      _lastUpdate = loaded.lastUpdated;
       _startLoop();
     }
   }
@@ -51,8 +56,12 @@ class PetNotifier extends StateNotifier<PetState?> {
     if (evolved) {
       _onEvolution();
     }
-    state = updated;
-    Database.savePet(updated);
+    // The simulation mutates the same instance in place, so a clone must be
+    // published for watchers to be notified.
+    state = updated.clone();
+    Database.savePet(updated).catchError((Object error) {
+      debugPrint('Pet tick save failed: $error');
+    });
   }
 
   Future<void> _onEvolution() async {
@@ -108,47 +117,67 @@ class PetNotifier extends StateNotifier<PetState?> {
       pet.velocityY = 0;
     }
 
-    state = pet;
+    // Position changes are deliberately not published to watchers: the
+    // viewport repaints from its own animation tick and reading the live
+    // instance, while a 10 Hz notification would rebuild the whole screen.
   }
 
   Future<void> feed() async {
-    if (state == null) return;
-    NeedsSystem.feed(state!);
-    await _learn('feed', 0.72);
-    state = state;
-    await Database.savePet(state!);
+    await _ai.ensureReady();
+    final pet = state;
+    if (pet == null) return;
+    NeedsSystem.feed(pet);
+    _ai.recordInteractionSync(pet: pet, action: 'feed', reward: 0.72);
+    state = pet.clone();
+    await _persist(pet);
   }
 
   Future<void> play() async {
-    if (state == null) return;
-    NeedsSystem.play(state!);
-    await _learn('play', 0.92);
-    state = state;
-    await Database.savePet(state!);
+    await _ai.ensureReady();
+    final pet = state;
+    if (pet == null) return;
+    NeedsSystem.play(pet);
+    _ai.recordInteractionSync(pet: pet, action: 'play', reward: 0.92);
+    state = pet.clone();
+    await _persist(pet);
   }
 
   Future<void> petPet() async {
-    if (state == null) return;
-    NeedsSystem.pet(state!);
-    await _learn('pet', 0.84);
-    state = state;
-    await Database.savePet(state!);
+    await _ai.ensureReady();
+    final pet = state;
+    if (pet == null) return;
+    NeedsSystem.pet(pet);
+    _ai.recordInteractionSync(pet: pet, action: 'pet', reward: 0.84);
+    state = pet.clone();
+    await _persist(pet);
   }
 
   Future<void> clean() async {
-    if (state == null) return;
-    NeedsSystem.clean(state!);
-    await _learn('clean', 0.46);
-    state = state;
-    await Database.savePet(state!);
+    await _ai.ensureReady();
+    final pet = state;
+    if (pet == null) return;
+    NeedsSystem.clean(pet);
+    _ai.recordInteractionSync(pet: pet, action: 'clean', reward: 0.46);
+    state = pet.clone();
+    await _persist(pet);
   }
 
   Future<void> drink() async {
-    if (state == null) return;
-    NeedsSystem.drink(state!);
-    await _learn('drink', 0.58);
-    state = state;
-    await Database.savePet(state!);
+    await _ai.ensureReady();
+    final pet = state;
+    if (pet == null) return;
+    NeedsSystem.drink(pet);
+    _ai.recordInteractionSync(pet: pet, action: 'drink', reward: 0.58);
+    state = pet.clone();
+    await _persist(pet);
+  }
+
+  Future<void> _persist(PetState pet) async {
+    try {
+      await Database.savePet(pet);
+    } catch (error) {
+      debugPrint('Pet save failed: $error');
+    }
   }
 
   Future<String?> react(String context) async {
@@ -165,12 +194,6 @@ class PetNotifier extends StateNotifier<PetState?> {
 
   Future<void> cancelChat() => _ai.cancelChat();
 
-  Future<void> _learn(String action, double reward) async {
-    final pet = state;
-    if (pet == null) return;
-    await _ai.recordInteraction(pet: pet, action: action, reward: reward);
-  }
-
   Future<void> createPet(String name, String species) async {
     final now = DateTime.now();
     final pet = PetState()
@@ -184,10 +207,19 @@ class PetNotifier extends StateNotifier<PetState?> {
       ..posX = 100
       ..posY = 200;
 
-    await Database.savePet(pet);
+    await _persist(pet);
     state = pet;
     _lastUpdate = now;
     _startLoop();
+  }
+
+  /// Stops the simulation and removes all persisted pet data so the
+  /// deletion requested from settings is not undone by the next tick.
+  Future<void> deleteAllData() async {
+    _tickTimer?.cancel();
+    _tickTimer = null;
+    await Database.deleteAll();
+    state = null;
   }
 
   @override

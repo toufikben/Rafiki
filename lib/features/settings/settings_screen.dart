@@ -5,7 +5,7 @@ import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../ai/local_model_manager.dart';
 import '../../ai/model_install_preflight.dart';
-import '../../data/database.dart';
+import '../../providers/pet_provider.dart';
 import '../../services/audio_service.dart';
 import '../../services/floating_service.dart';
 import 'legal_information_screen.dart';
@@ -459,6 +459,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ],
       ),
     );
-    if (confirmed == true) await Database.deleteAll();
+    if (confirmed == true) {
+      await ref.read(petProvider.notifier).deleteAllData();
+      if (context.mounted) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
+    }
   }
 }
