@@ -123,46 +123,51 @@ class PetNotifier extends StateNotifier<PetState?> {
   }
 
   Future<void> feed() async {
+    await _ai.ensureReady();
     final pet = state;
     if (pet == null) return;
     NeedsSystem.feed(pet);
-    await _learn('feed', 0.72);
+    _ai.recordInteractionSync(pet: pet, action: 'feed', reward: 0.72);
     state = pet.clone();
     await _persist(pet);
   }
 
   Future<void> play() async {
+    await _ai.ensureReady();
     final pet = state;
     if (pet == null) return;
     NeedsSystem.play(pet);
-    await _learn('play', 0.92);
+    _ai.recordInteractionSync(pet: pet, action: 'play', reward: 0.92);
     state = pet.clone();
     await _persist(pet);
   }
 
   Future<void> petPet() async {
+    await _ai.ensureReady();
     final pet = state;
     if (pet == null) return;
     NeedsSystem.pet(pet);
-    await _learn('pet', 0.84);
+    _ai.recordInteractionSync(pet: pet, action: 'pet', reward: 0.84);
     state = pet.clone();
     await _persist(pet);
   }
 
   Future<void> clean() async {
+    await _ai.ensureReady();
     final pet = state;
     if (pet == null) return;
     NeedsSystem.clean(pet);
-    await _learn('clean', 0.46);
+    _ai.recordInteractionSync(pet: pet, action: 'clean', reward: 0.46);
     state = pet.clone();
     await _persist(pet);
   }
 
   Future<void> drink() async {
+    await _ai.ensureReady();
     final pet = state;
     if (pet == null) return;
     NeedsSystem.drink(pet);
-    await _learn('drink', 0.58);
+    _ai.recordInteractionSync(pet: pet, action: 'drink', reward: 0.58);
     state = pet.clone();
     await _persist(pet);
   }
@@ -188,12 +193,6 @@ class PetNotifier extends StateNotifier<PetState?> {
   }
 
   Future<void> cancelChat() => _ai.cancelChat();
-
-  Future<void> _learn(String action, double reward) async {
-    final pet = state;
-    if (pet == null) return;
-    await _ai.recordInteraction(pet: pet, action: action, reward: reward);
-  }
 
   Future<void> createPet(String name, String species) async {
     final now = DateTime.now();
