@@ -53,7 +53,11 @@ Future<void> _initializeCommerceServices() async {
 @pragma('vm:entry-point')
 void overlayMain() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (!Database.isReady) await Database.init();
+  try {
+    if (!Database.isReady) await Database.init();
+  } catch (error) {
+    debugPrint('Overlay database init failed: $error');
+  }
   runApp(const _FloatingPetApp());
 }
 
@@ -82,8 +86,12 @@ class _FloatingPetAppState extends State<_FloatingPetApp>
   }
 
   Future<void> _loadPet() async {
-    final pet = await Database.getPet();
-    if (mounted) setState(() => _pet = pet);
+    try {
+      final pet = await Database.getPet();
+      if (mounted) setState(() => _pet = pet);
+    } catch (error) {
+      debugPrint('Overlay pet load failed: $error');
+    }
   }
 
   @override

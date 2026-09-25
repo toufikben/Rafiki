@@ -248,7 +248,11 @@ class PetNotifier extends StateNotifier<PetState?> {
   Future<void> deleteAllData() async {
     _tickTimer?.cancel();
     _tickTimer = null;
-    await Database.deleteAll();
+    try {
+      await Database.deleteAll();
+    } catch (error) {
+      debugPrint('Delete all data failed: $error');
+    }
     state = null;
     _setStatus(PetLoadStatus.empty);
   }
