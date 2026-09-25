@@ -91,5 +91,19 @@ void main() {
         isFalse,
       );
     });
+
+    test('rejects plain-HTTP model URLs before any request', () async {
+      expect(
+        ModelInstallPreflight.isAllowedNetworkUrl(
+          'http://models.example.test/pet.litertlm',
+        ),
+        isFalse,
+      );
+      final result = await ModelInstallPreflight.networkUrl(
+        'http://models.example.test/pet.litertlm',
+      );
+      expect(result.valid, isFalse);
+      expect(result.reason, contains('HTTPS'));
+    });
   });
 }

@@ -96,7 +96,7 @@ Run on a connected Android device or emulator:
 flutter run
 ```
 
-The model binary is intentionally not committed. Install one explicitly through the in-app model-management flow, which supports local file selection and confirmed URL downloads through `LocalModelManager`; the `FlutterGemma.installModel(...).fromFile(...)` / `.fromNetwork(...)` APIs remain the runtime boundary. Until a model is installed, LocalChatService uses its offline fallback.
+The model binary is intentionally not committed. Install one explicitly through the in-app model-management flow, which supports local file selection and confirmed HTTPS-only URL downloads through `LocalModelManager`; the `FlutterGemma.installModel(...).fromFile(...)` / `.fromNetwork(...)` APIs remain the runtime boundary. Until a model is installed, LocalChatService uses its offline fallback.
 
 ## Production checklist
 

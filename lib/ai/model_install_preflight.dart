@@ -67,7 +67,7 @@ class ModelInstallPreflight {
       return ModelPreflightResult(
         valid: false,
         source: value,
-        reason: 'Use an HTTP(S) URL that points to a .litertlm file.',
+        reason: 'Use an HTTPS URL that points to a .litertlm file.',
       );
     }
 
@@ -84,7 +84,7 @@ class ModelInstallPreflight {
         return ModelPreflightResult(
           valid: false,
           source: value,
-          reason: 'The model URL redirected to a non-HTTP(S) .litertlm URL.',
+          reason: 'The model URL redirected to a non-HTTPS .litertlm URL.',
         );
       }
       final size = response.contentLength > 0 ? response.contentLength : null;
@@ -134,8 +134,10 @@ class ModelInstallPreflight {
     return uri != null && _isAllowedModelUri(uri);
   }
 
+  // HTTPS only: model binaries are executable payloads for the on-device
+  // engine, so a plain-HTTP fetch could be substituted in transit.
   static bool _isAllowedModelUri(Uri uri) =>
       uri.host.isNotEmpty &&
-      (uri.scheme == 'https' || uri.scheme == 'http') &&
+      uri.scheme == 'https' &&
       uri.path.toLowerCase().endsWith('.litertlm');
 }
