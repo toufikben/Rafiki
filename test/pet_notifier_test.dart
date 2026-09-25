@@ -132,6 +132,25 @@ void main() {
       expect(after.totalInteractions, interactionsBefore + 1);
     });
 
+    test('every interaction family member counts exactly one interaction',
+        () async {
+      final container = await bootstrappedContainer();
+      final notifier = container.read(petProvider.notifier);
+      int interactions() => container.read(petProvider)!.totalInteractions;
+
+      // Regression pin: petting was double-counted because both
+      // NeedsSystem.pet and the learning recorder incremented the counter.
+      final before = interactions();
+      await notifier.petPet();
+      expect(interactions(), before + 1);
+      await notifier.play();
+      expect(interactions(), before + 2);
+      await notifier.clean();
+      expect(interactions(), before + 3);
+      await notifier.drink();
+      expect(interactions(), before + 4);
+    });
+
     test('the 1 Hz simulation tick notifies watchers without an interaction',
         () async {
       final container = await bootstrappedContainer();

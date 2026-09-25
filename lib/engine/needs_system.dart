@@ -86,7 +86,8 @@ class NeedsSystem {
     pet.affection = _clamp(pet.affection + 0.08);
     pet.happiness = _clamp(pet.happiness + 0.03);
     pet.stress = _clamp(pet.stress - 0.10);
-    pet.totalInteractions++;
+    // Interaction counting is owned by AIService.recordInteractionSync so
+    // every interaction family member counts exactly once.
     _addXP(pet, 2);
   }
 
