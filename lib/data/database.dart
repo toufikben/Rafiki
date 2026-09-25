@@ -51,7 +51,7 @@ class Database {
   /// Returns the singleton settings row, or defaults when none was saved.
   static Future<AppSettings> getSettings() async {
     if (!_initialized) await init();
-    final settings = _isar!.appSettings.get(0);
+    final settings = await _isar!.appSettings.get(0);
     return settings ?? AppSettings();
   }
 

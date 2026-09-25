@@ -10,6 +10,7 @@ import '../../render/pet_painter.dart';
 import '../../render/dog_animation_controller.dart';
 import '../../render/dog_scene_view.dart';
 import '../../services/ad_service.dart';
+import '../../services/audio_service.dart';
 import '../../services/interaction_sounds.dart';
 import '../settings/settings_screen.dart';
 import 'manual_test_controls.dart';
