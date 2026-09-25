@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,17 +24,39 @@ Future<void> main() async {
     // The conversational fallback remains available if native LLM loading
     // is unavailable on an older or low-memory Android device.
   }
-  await Database.init();
+  try {
+    await Database.init();
+  } catch (error) {
+    debugPrint('Database init failed: $error');
+  }
   AudioService.init();
-  await MobileAds.instance.initialize();
-  await PurchaseService.init();
   runApp(const ProviderScope(child: RafiqApp()));
+  // Ads and billing are not needed for the first frame; a failure in either
+  // SDK must not blank or delay the core pet experience.
+  unawaited(_initializeCommerceServices());
+}
+
+Future<void> _initializeCommerceServices() async {
+  try {
+    await MobileAds.instance.initialize();
+  } catch (error) {
+    debugPrint('Ads init failed: $error');
+  }
+  try {
+    await PurchaseService.init();
+  } catch (error) {
+    debugPrint('Purchases init failed: $error');
+  }
 }
 
 @pragma('vm:entry-point')
 void overlayMain() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (!Database.isReady) await Database.init();
+  try {
+    if (!Database.isReady) await Database.init();
+  } catch (error) {
+    debugPrint('Overlay database init failed: $error');
+  }
   runApp(const _FloatingPetApp());
 }
 
@@ -61,8 +85,12 @@ class _FloatingPetAppState extends State<_FloatingPetApp>
   }
 
   Future<void> _loadPet() async {
-    final pet = await Database.getPet();
-    if (mounted) setState(() => _pet = pet);
+    try {
+      final pet = await Database.getPet();
+      if (mounted) setState(() => _pet = pet);
+    } catch (error) {
+      debugPrint('Overlay pet load failed: $error');
+    }
   }
 
   @override
