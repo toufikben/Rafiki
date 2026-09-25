@@ -5,6 +5,7 @@ import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../ai/local_model_manager.dart';
 import '../../ai/model_install_preflight.dart';
+import '../../data/database.dart';
 import '../../providers/pet_provider.dart';
 import '../../services/audio_service.dart';
 import '../../services/floating_service.dart';
@@ -50,6 +51,7 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _soundEnabled = true;
+  bool _soundTouched = false;
   bool _floatingEnabled = false;
   final LocalModelManager _modelManager = LocalModelManager();
 
@@ -57,6 +59,30 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   void initState() {
     super.initState();
     _loadFloatingStatus();
+    _loadSoundSetting();
+  }
+
+  Future<void> _loadSoundSetting() async {
+    try {
+      final settings = await Database.getSettings();
+      // A toggle tapped while the row was loading wins over the stale
+      // snapshot arriving late.
+      if (mounted && !_soundTouched) {
+        setState(() => _soundEnabled = settings.soundEnabled);
+      }
+    } catch (error) {
+      debugPrint('Sound setting load failed: $error');
+    }
+  }
+
+  Future<void> _saveSoundSetting(bool value) async {
+    try {
+      final settings = await Database.getSettings();
+      settings.soundEnabled = value;
+      await Database.saveSettings(settings);
+    } catch (error) {
+      debugPrint('Sound setting save failed: $error');
+    }
   }
 
   Future<void> _loadFloatingStatus() async {
@@ -77,7 +103,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             value: _soundEnabled,
             onChanged: (v) {
               setState(() => _soundEnabled = v);
+              _soundTouched = true;
               AudioService.setEnabled(v);
+              _saveSoundSetting(v);
             },
           ),
           if (Platform.isAndroid)

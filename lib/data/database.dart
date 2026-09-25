@@ -1,5 +1,6 @@
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
+import '../core/models/app_settings.dart';
 import '../core/models/pet_state.dart';
 
 class Database {
@@ -21,7 +22,7 @@ class Database {
         ? await getApplicationDocumentsDirectory()
         : null;
     _isar = await Isar.open(
-      [PetStateSchema],
+      [PetStateSchema, AppSettingsSchema],
       directory: directory ?? dir!.path,
       name: name,
     );
@@ -44,6 +45,21 @@ class Database {
     if (!_initialized) await init();
     await _isar!.writeTxn(() async {
       await _isar!.petStates.clear();
+    });
+  }
+
+  /// Returns the singleton settings row, or defaults when none was saved.
+  static Future<AppSettings> getSettings() async {
+    if (!_initialized) await init();
+    final settings = _isar!.appSettings.get(0);
+    return settings ?? AppSettings();
+  }
+
+  static Future<void> saveSettings(AppSettings settings) async {
+    if (!_initialized) await init();
+    settings.id = 0;
+    await _isar!.writeTxn(() async {
+      await _isar!.appSettings.put(settings);
     });
   }
 
