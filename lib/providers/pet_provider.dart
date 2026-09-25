@@ -8,7 +8,9 @@ import '../engine/needs_system.dart';
 import '../engine/evolution_system.dart';
 import '../ai/ai_service.dart';
 import '../data/database.dart';
+import '../services/ad_service.dart';
 import '../services/notification_service.dart';
+import '../services/purchase_service.dart';
 
 /// Distinguishes "still loading the saved pet" from "no pet exists yet" so
 /// the UI shows a splash on cold start instead of flashing onboarding.
@@ -17,17 +19,26 @@ enum PetLoadStatus { loading, ready, empty }
 final petLoadStatusProvider =
     StateProvider<PetLoadStatus>((ref) => PetLoadStatus.loading);
 
-final petProvider =
-    StateNotifierProvider<PetNotifier, PetState?>((ref) => PetNotifier(ref));
+/// Purchase entitlement events. Overridable so tests can inject grants
+/// without the platform billing plugin.
+final premiumGrantStreamProvider = Provider<Stream<void>>(
+  (ref) => PurchaseService.premiumGrants,
+);
+
+final petProvider = StateNotifierProvider<PetNotifier, PetState?>(
+  (ref) => PetNotifier(ref, ref.watch(premiumGrantStreamProvider)),
+);
 
 class PetNotifier extends StateNotifier<PetState?> {
   final AIService _ai = AIService();
   final Ref _ref;
+  final Stream<void> _premiumGrants;
+  StreamSubscription<void>? _premiumGrantSub;
   late final Future<void> _initFuture;
   Timer? _tickTimer;
   DateTime _lastUpdate = DateTime.now();
 
-  PetNotifier(this._ref) : super(null) {
+  PetNotifier(this._ref, this._premiumGrants) : super(null) {
     _initFuture = _init();
   }
 
@@ -38,6 +49,9 @@ class PetNotifier extends StateNotifier<PetState?> {
   Future<void> get initialized => _initFuture;
 
   Future<void> _init() async {
+    // Subscribe before loading the pet so a restore event racing the DB read
+    // is observed live; a grant that landed even earlier is caught up below.
+    _premiumGrantSub = _premiumGrants.listen((_) => _applyPremiumGrant());
     try {
       if (!Database.isReady) await Database.init();
       final loaded = await Database.getPet();
@@ -55,9 +69,34 @@ class PetNotifier extends StateNotifier<PetState?> {
     } finally {
       _setStatus(state != null ? PetLoadStatus.ready : PetLoadStatus.empty);
     }
+    // Restart catch-up: seed ad suppression from the persisted entitlement
+    // and re-apply a purchase that was granted before this subscription
+    // existed (broadcast streams drop unlistened events by design).
+    if (state?.isPremium ?? false) {
+      AdService.setPremium(true);
+    }
+    if (PurchaseService.isPremium) {
+      _applyPremiumGrant();
+    }
     // The LLM engine is optional and slow; chat and reactions lazily
     // re-initialize it, so it must not block showing the pet.
     await _ai.init();
+  }
+
+  /// Applies a premium purchase to the pet and the ad service.
+  ///
+  /// Runs synchronously (no awaits) so the capture->mutate->publish step
+  /// cannot interleave with the tick loop, mirroring the interaction
+  /// actions. Idempotent: a duplicate grant keeps the original
+  /// [PetState.premiumSince].
+  void _applyPremiumGrant() {
+    AdService.setPremium(true);
+    final pet = state;
+    if (pet == null || pet.isPremium) return;
+    pet.isPremium = true;
+    pet.premiumSince ??= DateTime.now();
+    state = pet.clone();
+    unawaited(_persist(pet));
   }
 
   void _setStatus(PetLoadStatus status) {
@@ -236,6 +275,14 @@ class PetNotifier extends StateNotifier<PetState?> {
       ..posX = 100
       ..posY = 200;
 
+    // A user who already owns premium (restored before creating the pet,
+    // or recreating after delete-all) keeps the entitlement on the new pet.
+    if (PurchaseService.isPremium) {
+      pet.isPremium = true;
+      pet.premiumSince = now;
+      AdService.setPremium(true);
+    }
+
     await _persist(pet);
     state = pet;
     _lastUpdate = now;
@@ -254,12 +301,14 @@ class PetNotifier extends StateNotifier<PetState?> {
       debugPrint('Delete all data failed: $error');
     }
     state = null;
+    AdService.setPremium(false);
     _setStatus(PetLoadStatus.empty);
   }
 
   @override
   void dispose() {
     _tickTimer?.cancel();
+    _premiumGrantSub?.cancel();
     _ai.dispose();
     super.dispose();
   }
