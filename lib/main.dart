@@ -30,6 +30,16 @@ Future<void> main() async {
     debugPrint('Database init failed: $error');
   }
   AudioService.init();
+  // The persisted sound preference must be applied before the first
+  // interaction; a read failure falls back to the enabled default.
+  if (Database.isReady) {
+    try {
+      final settings = await Database.getSettings();
+      AudioService.setEnabled(settings.soundEnabled);
+    } catch (error) {
+      debugPrint('Settings load failed: $error');
+    }
+  }
   runApp(const ProviderScope(child: RafiqApp()));
   // Ads and billing are not needed for the first frame; a failure in either
   // SDK must not blank or delay the core pet experience.

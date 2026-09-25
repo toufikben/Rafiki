@@ -11,6 +11,7 @@ import '../../render/dog_animation_controller.dart';
 import '../../render/dog_scene_view.dart';
 import '../../services/ad_service.dart';
 import '../../services/audio_service.dart';
+import '../../services/interaction_sounds.dart';
 import '../settings/settings_screen.dart';
 import 'manual_test_controls.dart';
 import 'pet_status_hud.dart';
@@ -150,30 +151,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 children: [
                   _actionButton('Feed', Icons.restaurant, () {
                     _showReaction('fed');
-                    _dogAudio.interaction('feed');
-                    AudioService.playHappy();
+                    _playInteractionSound('feed');
                     ref.read(petProvider.notifier).feed();
                     AdService.showIfReady();
                   }),
                   _actionButton('Play', Icons.sports_esports, () {
                     _showReaction('play');
-                    _dogAudio.interaction('play');
-                    AudioService.playMeow();
+                    _playInteractionSound('play');
                     ref.read(petProvider.notifier).play();
                   }),
                   _actionButton('Pet', Icons.favorite, () {
                     _showReaction('pet');
-                    _dogAudio.interaction('pet');
-                    AudioService.playPurr();
+                    _playInteractionSound('pet');
                     ref.read(petProvider.notifier).petPet();
                   }),
                   _actionButton('Clean', Icons.cleaning_services, () {
                     _showReaction('clean');
-                    _dogAudio.interaction('clean');
+                    _playInteractionSound('clean');
                     ref.read(petProvider.notifier).clean();
                   }),
                   _actionButton('Drink', Icons.water_drop, () {
                     _showReaction('drink');
+                    _playInteractionSound('drink');
                     ref.read(petProvider.notifier).drink();
                   }),
                 ],
@@ -183,6 +182,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         ),
       ),
     );
+  }
+
+  /// Plays the species-correct one-shot for an interaction. Dogs are owned
+  /// by [_dogAudio] alone (bark/whine with cooldowns); every other species
+  /// follows the shared policy mapping so cat sounds never layer over dog
+  /// sounds and bunnies only get the generic happy cue.
+  void _playInteractionSound(String action) {
+    final pet = ref.read(petProvider);
+    if (pet == null) return;
+    if (pet.species == PetSpecies.dog) {
+      _dogAudio.interaction(action);
+      return;
+    }
+    playInteractionSound(pet.species, action);
   }
 
   Future<void> _showReaction(String context) async {
