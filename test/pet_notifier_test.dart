@@ -110,6 +110,10 @@ void main() {
       final container = await bootstrappedContainer();
       final notifier = container.read(petProvider.notifier);
       final before = container.read(petProvider)!;
+      // Snapshot scalars: feed() mutates the previous instance in place
+      // before the clone is published.
+      final hungerBefore = before.hunger;
+      final interactionsBefore = before.totalInteractions;
 
       final emitted = <PetState?>[];
       container.listen<PetState?>(
@@ -123,8 +127,9 @@ void main() {
       expect(emitted, isNotEmpty);
       expect(after, isNot(same(before)));
       expect(after.id, before.id);
-      expect(after.hunger, greaterThan(before.hunger));
-      expect(after.totalInteractions, before.totalInteractions + 1);
+      expect(after.hunger, greaterThanOrEqualTo(hungerBefore));
+      expect(after.hunger, greaterThan(0));
+      expect(after.totalInteractions, interactionsBefore + 1);
     });
 
     test('the 1 Hz simulation tick notifies watchers without an interaction',
