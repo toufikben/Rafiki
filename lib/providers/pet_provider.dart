@@ -10,30 +10,58 @@ import '../ai/ai_service.dart';
 import '../data/database.dart';
 import '../services/notification_service.dart';
 
+/// Distinguishes "still loading the saved pet" from "no pet exists yet" so
+/// the UI shows a splash on cold start instead of flashing onboarding.
+enum PetLoadStatus { loading, ready, empty }
+
+final petLoadStatusProvider =
+    StateProvider<PetLoadStatus>((ref) => PetLoadStatus.loading);
+
 final petProvider =
-    StateNotifierProvider<PetNotifier, PetState?>((ref) => PetNotifier());
+    StateNotifierProvider<PetNotifier, PetState?>((ref) => PetNotifier(ref));
 
 class PetNotifier extends StateNotifier<PetState?> {
   final AIService _ai = AIService();
+  final Ref _ref;
+  late final Future<void> _initFuture;
   Timer? _tickTimer;
   DateTime _lastUpdate = DateTime.now();
 
-  PetNotifier() : super(null) {
-    _init();
+  PetNotifier(this._ref) : super(null) {
+    _initFuture = _init();
   }
 
+  /// Completes when startup initialization finishes: the saved pet is
+  /// loaded (or the store read failed) and the load status is published
+  /// first, then the optional LLM engine initializes. Exposed so tests can
+  /// await deterministic startup.
+  Future<void> get initialized => _initFuture;
+
   Future<void> _init() async {
-    await _ai.init();
-    if (!Database.isReady) await Database.init();
-    final loaded = await Database.getPet();
-    // A pet created while loading (onboarding racing initialization) wins
-    // over the stale snapshot read from disk.
-    if (state != null) return;
-    state = loaded;
-    if (loaded != null) {
-      _lastUpdate = loaded.lastUpdated;
-      _startLoop();
+    try {
+      if (!Database.isReady) await Database.init();
+      final loaded = await Database.getPet();
+      // A pet created while loading (onboarding racing initialization) wins
+      // over the stale snapshot read from disk.
+      if (state == null) {
+        state = loaded;
+        if (loaded != null) {
+          _lastUpdate = loaded.lastUpdated;
+          _startLoop();
+        }
+      }
+    } catch (error) {
+      debugPrint('Pet load failed: $error');
+    } finally {
+      _setStatus(state != null ? PetLoadStatus.ready : PetLoadStatus.empty);
     }
+    // The LLM engine is optional and slow; chat and reactions lazily
+    // re-initialize it, so it must not block showing the pet.
+    await _ai.init();
+  }
+
+  void _setStatus(PetLoadStatus status) {
+    _ref.read(petLoadStatusProvider.notifier).state = status;
   }
 
   void _startLoop() {
@@ -211,6 +239,7 @@ class PetNotifier extends StateNotifier<PetState?> {
     await _persist(pet);
     state = pet;
     _lastUpdate = now;
+    _setStatus(PetLoadStatus.ready);
     _startLoop();
   }
 
@@ -221,6 +250,7 @@ class PetNotifier extends StateNotifier<PetState?> {
     _tickTimer = null;
     await Database.deleteAll();
     state = null;
+    _setStatus(PetLoadStatus.empty);
   }
 
   @override

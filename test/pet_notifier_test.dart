@@ -101,9 +101,49 @@ void main() {
       final container = ProviderContainer();
       // Disposing the container disposes the notifier and cancels its timer.
       addTearDown(container.dispose);
-      await container.read(petProvider.notifier).createPet('Nimbus', 'dog');
+      final notifier = container.read(petProvider.notifier);
+      await notifier.initialized;
+      await notifier.createPet('Nimbus', 'dog');
       return container;
     }
+
+    PetState seedPet(String name) {
+      final now = DateTime.now();
+      return PetState()
+        ..name = name
+        ..species = 'dog'
+        ..birthDate = now
+        ..lastInteraction = now
+        ..lastFed = now
+        ..lastPlayed = now
+        ..lastUpdated = now;
+    }
+
+    test('cold start with a saved pet becomes ready without onboarding flash',
+        () async {
+      await Database.savePet(seedPet('Seed'));
+
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(petProvider.notifier);
+
+      expect(container.read(petLoadStatusProvider), PetLoadStatus.loading);
+
+      await notifier.initialized;
+
+      expect(container.read(petLoadStatusProvider), PetLoadStatus.ready);
+      expect(container.read(petProvider)?.name, 'Seed');
+    });
+
+    test('cold start with an empty store reports empty, not loading',
+        () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      await container.read(petProvider.notifier).initialized;
+
+      expect(container.read(petLoadStatusProvider), PetLoadStatus.empty);
+      expect(container.read(petProvider), isNull);
+    });
 
     test('an interaction publishes a new state instance to watchers',
         () async {
@@ -159,6 +199,7 @@ void main() {
       await notifier.deleteAllData();
 
       expect(container.read(petProvider), isNull);
+      expect(container.read(petLoadStatusProvider), PetLoadStatus.empty);
       expect(await Database.getPet(), isNull);
 
       // Regression pin: the old implementation kept its in-memory pet and

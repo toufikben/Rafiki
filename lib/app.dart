@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,12 +20,15 @@ class _RafiqAppState extends ConsumerState<RafiqApp> {
   @override
   void initState() {
     super.initState();
-    NotificationService.init();
+    NotificationService.init().catchError((Object error) {
+      debugPrint('Notification init failed: $error');
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final pet = ref.watch(petProvider);
+    final loadStatus = ref.watch(petLoadStatusProvider);
     return MaterialApp(
       title: 'Rafiq',
       debugShowCheckedModeBanner: false,
@@ -47,7 +51,22 @@ class _RafiqAppState extends ConsumerState<RafiqApp> {
         Locale('en'),
         Locale('ar'),
       ],
-      home: pet == null ? const OnboardingScreen() : const HomeScreen(),
+      home: pet != null
+          ? const HomeScreen()
+          : loadStatus == PetLoadStatus.loading
+              ? const _StartupSplash()
+              : const OnboardingScreen(),
+    );
+  }
+}
+
+class _StartupSplash extends StatelessWidget {
+  const _StartupSplash();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
     );
   }
 }
