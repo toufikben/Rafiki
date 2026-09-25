@@ -76,13 +76,13 @@
     },
     {
       "id": "R08",
-      "title": "DogSceneView leaks Scene resources; static init re-runs per instance",
+      "title": "DogSceneView node cleanup on dispose (API-correct remediation unverified)",
       "severity": "medium",
-      "likelihood": "high",
-      "evidence": "lib/render/dog_scene_view.dart dispose() nulls runtime but never disposes scene/nodes",
-      "impact": "Native GPU memory growth on the primary 3D experience; jank/crash risk over session",
-      "ai_fixable": true,
-      "status": "OPEN"
+      "likelihood": "medium",
+      "evidence": "lib/render/dog_scene_view.dart dispose() only nulls the runtime. VERIFIED via fscene.dev API docs (0.22.1): flutter_scene Scene has NO dispose() method; cleanup surface is remove/removeAll + node-level disposal. Earlier claim 'never disposes _scene' was inaccurate. initializeStaticResources() re-runs per widget instance.",
+      "impact": "Possible retained GPU/node references across scene recreations; magnitude unproven without device profiling",
+      "ai_fixable": "deferred - requires flutter_scene 0.23.0 API verification (Scene.removeAll/Node disposal semantics) plus on-device memory profiling; speculative change refused per mission rules",
+      "status": "OPEN_NEEDS_EVIDENCE"
     },
     {
       "id": "R09",
