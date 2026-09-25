@@ -5,6 +5,7 @@ import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../ai/local_model_manager.dart';
 import '../../ai/model_install_preflight.dart';
+import '../../ai/recommended_models.dart';
 import '../../data/database.dart';
 import '../../services/audio_service.dart';
 import '../../services/floating_service.dart';
@@ -205,6 +206,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         Text(
                           'Active model: ${_modelManager.activeModelName ?? 'none'}',
                         ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Recommended default (best quality): ${defaultRecommendedModel.label} '
+                          '(~${defaultRecommendedModel.approxSizeMB} MB). '
+                          'No model is bundled or downloaded automatically; verify the license of any file you install.',
+                        ),
+                        const SizedBox(height: 4),
+                        for (final model in recommendedModels)
+                          Text(
+                            '• ${model.label} — ~${model.approxSizeMB} MB. ${model.notes}',
+                          ),
+                        const SizedBox(height: 4),
+                        Text(modelStorageGuidance()),
                         const SizedBox(height: 12),
                         OutlinedButton.icon(
                           onPressed: busy
