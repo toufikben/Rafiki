@@ -161,6 +161,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           var busy = false;
           var progress = 0;
           String? error;
+          // Re-entry guards: every dialog button below awaits async gaps
+          // (preflight, keyboard settle) while staying enabled-looking, so
+          // a second tap would stack duplicate routes/pops and corrupt the
+          // overlay (duplicate GlobalKeys) or tear down mid-animation
+          // (InheritedElement._dependents). Flags are set synchronously.
+          var dialogClosing = false;
 
           return StatefulBuilder(
             builder: (context, setDialogState) {
@@ -204,13 +210,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 String url, {
                 ModelType modelType = ModelType.general,
               }) async {
-                setDialogState(() => error = null);
+                // Block double-taps during the preflight gap: a stacked
+                // second confirmation dialog corrupts the overlay.
+                if (busy) return;
+                var confirmClosing = false;
+                setDialogState(() {
+                  busy = true;
+                  error = null;
+                });
                 final preflight =
                     await ModelInstallPreflight.networkUrl(url);
                 if (!context.mounted) return;
                 if (!preflight.valid) {
                   setDialogState(
-                    () => error = preflight.reason,
+                    () {
+                      error = preflight.reason;
+                      busy = false;
+                    },
                   );
                   return;
                 }
@@ -279,6 +295,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       actions: [
                         TextButton(
                           onPressed: () async {
+                            if (confirmClosing) return;
+                            confirmClosing = true;
                             if (await settleKeyboardForPop(
                                         confirmationContext) &&
                                 confirmationContext.mounted) {
@@ -289,6 +307,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ),
                         FilledButton.icon(
                           onPressed: () async {
+                            if (confirmClosing) return;
+                            confirmClosing = true;
                             if (await settleKeyboardForPop(
                                         confirmationContext) &&
                                 confirmationContext.mounted) {
@@ -312,6 +332,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                     ),
                   );
+                } else if (context.mounted) {
+                  // Confirmation dismissed without downloading: release
+                  // the busy guard set at preflight start.
+                  setDialogState(() => busy = false);
                 }
               }
 
@@ -498,6 +522,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 actions: [
                   TextButton(
                     onPressed: () async {
+                      // A second tap during the settle gap would pop the
+                      // same route twice and corrupt the overlay.
+                      if (dialogClosing) return;
+                      dialogClosing = true;
                       if (await settleKeyboardForPop(dialogContext) &&
                           dialogContext.mounted) {
                         Navigator.pop(dialogContext);
