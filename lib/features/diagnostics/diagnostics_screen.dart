@@ -133,7 +133,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                 const SizedBox(height: 12),
                 const Text('Build',
                     style: TextStyle(fontWeight: FontWeight.bold)),
-                SelectableText('Version 1.0.0 ($_buildTag)'),
+                const SelectableText('Version 1.0.0 ($_buildTag)'),
                 const SizedBox(height: 12),
                 const Text('Model',
                     style: TextStyle(fontWeight: FontWeight.bold)),
