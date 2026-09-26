@@ -24,13 +24,21 @@ import 'services/purchase_service.dart';
 /// `adb shell "run-as com.rafiq.app cat files/last_framework_error.txt"`.
 Future<void> recordFrameworkError(FlutterErrorDetails details) async {
   try {
+    final buffer = StringBuffer()
+      ..writeln(DateTime.now().toIso8601String())
+      ..writeln(details.exceptionAsString());
+    // Widget descriptions (the error-causing widget chain) are what turn
+    // a bare framework assert into an actionable fix.
+    final info = details.informationCollector?.call();
+    if (info != null) {
+      for (final line in info) {
+        buffer.writeln(line);
+      }
+    }
+    buffer.writeln(details.stack ?? '');
     final dir = await getApplicationDocumentsDirectory();
     final file = File('${dir.path}/last_framework_error.txt');
-    await file.writeAsString(
-      '${DateTime.now().toIso8601String()}\n'
-      '${details.exceptionAsString()}\n'
-      '${details.stack ?? ''}\n',
-    );
+    await file.writeAsString(buffer.toString());
   } catch (_) {
     // Recording must never break the error path itself.
   }

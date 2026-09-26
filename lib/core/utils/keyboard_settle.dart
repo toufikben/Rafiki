@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 /// Dismisses the keyboard and waits until the platform insets actually
@@ -16,6 +17,14 @@ import 'package:flutter/widgets.dart';
 Future<bool> settleKeyboardForPop(BuildContext context) async {
   if (!context.mounted) return false;
   FocusScope.of(context).unfocus();
+  // Force the platform IME down as well: on some keyboards (e.g. Gboard
+  // with its text-editing toolbar) Flutter-side unfocus alone leaves the
+  // input connection half-alive and the insets never settle.
+  try {
+    await SystemChannels.textInput.invokeMethod<void>('TextInput.hide');
+  } catch (_) {
+    // Best effort only; the inset wait below is the real gate.
+  }
   final stopwatch = Stopwatch()..start();
   while (stopwatch.elapsedMilliseconds < 2000) {
     await Future<void>.delayed(const Duration(milliseconds: 50));

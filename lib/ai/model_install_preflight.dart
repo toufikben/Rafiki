@@ -35,6 +35,9 @@ class ModelInstallPreflight {
     'cdn-lfs.huggingface.co',
     'cdn-lfs.hf.co',
     'cas-bridge.xethub.huggingface.co',
+    // Observed live on-device 2026-09-26: Hugging Face `/resolve/` links
+    // for the verified catalog builds bounce here.
+    'us.aws.cdn.co',
   };
 
   static Future<ModelPreflightResult> localFile(
