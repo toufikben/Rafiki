@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../ai/learning_profile.dart';
 import '../../core/constants/pet_species.dart';
 import '../../core/models/pet_state.dart';
+import '../../core/utils/keyboard_settle.dart';
 import '../../engine/behavior_engine.dart';
 import '../../providers/pet_provider.dart';
 import '../../render/pet_painter.dart';
@@ -296,6 +297,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final controller = TextEditingController();
     final messages = <Map<String, String>>[];
     var loading = false;
+    var canClose = false;
+    var closing = false;
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -324,14 +327,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               });
             }
 
-            return SafeArea(
-              child: Padding(
-                padding: EdgeInsets.only(
-                  left: 16,
-                  right: 16,
-                  top: 12,
-                  bottom: MediaQuery.viewInsetsOf(context).bottom + 12,
-                ),
+            // System back and drag-dismiss also tear down this route: veto
+            // the pop, settle the keyboard first (same red-screen guard as
+            // the model dialog), then close programmatically.
+            return PopScope(
+              canPop: canClose,
+              onPopInvokedWithResult: (didPop, _) async {
+                if (didPop || closing) return;
+                closing = true;
+                final settled = await settleKeyboardForPop(context);
+                if (!settled || !context.mounted) return;
+                setSheetState(() => canClose = true);
+                Navigator.pop(context);
+              },
+              child: SafeArea(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    top: 12,
+                    bottom: MediaQuery.viewInsetsOf(context).bottom + 12,
+                  ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -409,7 +425,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   ],
                 ),
               ),
-            );
+            ),
+          );
           },
         );
       },

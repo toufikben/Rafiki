@@ -17,6 +17,7 @@
 - One-tap verified `.litertlm` downloads in Settings (Qwen3 0.6B ~586 MB, LFM2.5 230M int4 ~168 MB, HEAD-verified against `litert-community` builds) with correct per-family `ModelType` (`qwen3` vs `general`); SmolLM marked unavailable (no `.litertlm` published, English-only).
 - Keyboard-teardown guards (unfocus + settle + mounted) on model-dialog and chat-sheet pops to prevent the `InheritedElement._dependents` red screen; CI build tag stamped into Settings > Version for on-device build proof.
 - `settleKeyboardForPop` waits for the real keyboard-inset signal (not a fixed delay) before dialog pops, and framework errors are recorded to `last_framework_error.txt` for adb retrieval when logcat rotates.
+- Chat bottom sheet guards system-back/drag dismissal with the same keyboard-settle veto (`PopScope`), and model-URL preflight accepts trusted Hugging Face CDN redirect hosts instead of rejecting their signed URLs.
 - Case/whitespace-tolerant authored-clip lookup plus wider exporter joint-name aliases for the dog rig runtime.
 - UI polish: chat privacy/empty-state copy, status-HUD semantics, labeled pet stat values, onboarding name-field label with species-picker semantics and a privacy/terms entry point.
 

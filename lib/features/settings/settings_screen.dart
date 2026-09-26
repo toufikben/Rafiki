@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../ai/local_model_manager.dart';
 import '../../ai/model_install_preflight.dart';
 import '../../ai/recommended_models.dart';
+import '../../core/utils/keyboard_settle.dart';
 import '../../data/database.dart';
 import '../../services/audio_service.dart';
 import '../../services/floating_service.dart';
@@ -16,24 +17,7 @@ import 'legal_information_screen.dart';
 /// screenshot proves exactly which commit is installed on a device.
 const _buildTag = String.fromEnvironment('RAFIQ_BUILD_TAG', defaultValue: 'dev');
 
-/// Dismisses the keyboard and waits until the platform insets actually
-/// settle back to zero (or a timeout expires) before the caller pops a
-/// route. Just calling `unfocus()` is NOT enough: the keyboard dismissal
-/// animates over several frames, and tearing down a dialog route while a
-/// MediaQuery/focus dependent is still registered trips
-/// `InheritedElement.debugDeactivated` (`_dependents.isEmpty`) and
-/// red-screens the app. Verified on-device: unfocus + fixed 300ms delay
-/// still crashed; waiting for the real inset signal is what works.
-Future<bool> settleKeyboardForPop(BuildContext context) async {
-  FocusScope.of(context).unfocus();
-  final stopwatch = Stopwatch()..start();
-  while (stopwatch.elapsedMilliseconds < 2000) {
-    if (!context.mounted) return false;
-    if (MediaQuery.viewInsetsOf(context).bottom <= 0) return true;
-    await Future<void>.delayed(const Duration(milliseconds: 50));
-  }
-  return context.mounted;
-}
+
 
 String _formatBytes(int bytes) {
   if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(0)} KB';
@@ -296,7 +280,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         TextButton(
                           onPressed: () async {
                             if (await settleKeyboardForPop(
-                                confirmationContext)) {
+                                        confirmationContext) &&
+                                confirmationContext.mounted) {
                               Navigator.pop(confirmationContext, false);
                             }
                           },
@@ -305,7 +290,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         FilledButton.icon(
                           onPressed: () async {
                             if (await settleKeyboardForPop(
-                                confirmationContext)) {
+                                        confirmationContext) &&
+                                confirmationContext.mounted) {
                               Navigator.pop(confirmationContext, true);
                             }
                           },
@@ -512,7 +498,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 actions: [
                   TextButton(
                     onPressed: () async {
-                      if (await settleKeyboardForPop(dialogContext)) {
+                      if (await settleKeyboardForPop(dialogContext) &&
+                          dialogContext.mounted) {
                         Navigator.pop(dialogContext);
                       }
                     },
