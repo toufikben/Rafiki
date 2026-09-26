@@ -23,12 +23,13 @@ class LocalModelManager {
   Future<void> installFromFile({
     required String path,
     void Function(int progress)? onProgress,
+    ModelType modelType = ModelType.general,
   }) async {
     final preflight = await ModelInstallPreflight.localFile(path);
     preflight.throwIfInvalid();
     await _install(
       FlutterGemma.installModel(
-        modelType: ModelType.general,
+        modelType: modelType,
         fileType: ModelFileType.litertlm,
       ).fromFile(path),
       onProgress: onProgress,
@@ -39,12 +40,13 @@ class LocalModelManager {
     required String url,
     String? token,
     void Function(int progress)? onProgress,
+    ModelType modelType = ModelType.general,
   }) async {
     final preflight = await ModelInstallPreflight.networkUrl(url);
     preflight.throwIfInvalid();
     await _install(
       FlutterGemma.installModel(
-        modelType: ModelType.general,
+        modelType: modelType,
         fileType: ModelFileType.litertlm,
       ).fromNetwork(url, token: token),
       onProgress: onProgress,

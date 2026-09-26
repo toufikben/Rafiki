@@ -193,6 +193,129 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 }
               }
 
+              /// Preflight + confirmation + install for any model URL: the
+              /// custom URL field and the verified one-tap catalog buttons
+              /// share this flow so the Wi-Fi/size warning and cancel path
+              /// cannot drift apart.
+              Future<void> runUrlInstall(
+                String url, {
+                ModelType modelType = ModelType.general,
+              }) async {
+                setDialogState(() => error = null);
+                final preflight =
+                    await ModelInstallPreflight.networkUrl(url);
+                if (!context.mounted) return;
+                if (!preflight.valid) {
+                  setDialogState(
+                    () => error = preflight.reason,
+                  );
+                  return;
+                }
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (confirmationContext) {
+                    final size = preflight.sizeBytes == null
+                        ? 'Unknown (server did not provide Content-Length)'
+                        : _formatBytes(preflight.sizeBytes!);
+                    final fileName =
+                        Uri.parse(url).pathSegments.last;
+                    return AlertDialog(
+                      title: const Text('Confirm model download'),
+                      content: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const Icon(
+                              Icons.download_for_offline_outlined,
+                              size: 42,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              fileName.isEmpty
+                                  ? 'LiteRT-LM model'
+                                  : fileName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            _DownloadDetail(
+                              icon: Icons.data_usage,
+                              label: 'Estimated download size',
+                              value: size,
+                            ),
+                            _DownloadDetail(
+                              icon: Icons.storage_outlined,
+                              label: 'Model storage currently used',
+                              value: storage == null
+                                  ? 'Unavailable'
+                                  : '${storage!.totalSizeMB.toStringAsFixed(1)} MB in ${storage!.totalFiles} file(s)',
+                            ),
+                            _DownloadDetail(
+                              icon: Icons.smart_toy_outlined,
+                              label: 'Active model',
+                              value: _modelManager.activeModelName ?? 'None',
+                            ),
+                            const SizedBox(height: 12),
+                            const Text(
+                              'This action downloads model data to this device. Wi-Fi is recommended; mobile data and additional storage may be used.',
+                            ),
+                            if (preflight.warning != null) ...[
+                              const SizedBox(height: 8),
+                              Text(
+                                preflight.warning!,
+                                style: const TextStyle(
+                                  color: Colors.orange,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () async {
+                            FocusScope.of(confirmationContext).unfocus();
+                            await Future<void>.delayed(
+                              const Duration(milliseconds: 300),
+                            );
+                            if (confirmationContext.mounted) {
+                              Navigator.pop(confirmationContext, false);
+                            }
+                          },
+                          child: const Text('Cancel'),
+                        ),
+                        FilledButton.icon(
+                          onPressed: () async {
+                            FocusScope.of(confirmationContext).unfocus();
+                            await Future<void>.delayed(
+                              const Duration(milliseconds: 300),
+                            );
+                            if (confirmationContext.mounted) {
+                              Navigator.pop(confirmationContext, true);
+                            }
+                          },
+                          icon: const Icon(Icons.download),
+                          label: const Text('Download'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+                if (confirmed == true && context.mounted) {
+                  await install(
+                    () => _modelManager.installFromNetwork(
+                      url: url,
+                      modelType: modelType,
+                      onProgress: (value) => setDialogState(
+                        () => progress = value,
+                      ),
+                    ),
+                  );
+                }
+              }
+
               return AlertDialog(
                 title: const Text('Local AI model'),
                 content: SizedBox(
@@ -227,6 +350,40 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           ),
                         const SizedBox(height: 4),
                         Text(modelStorageGuidance()),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'One-tap verified downloads (same confirmation and Wi-Fi warning apply):',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        for (final model in recommendedModels)
+                          if (model.installUrl != null)
+                            ListTile(
+                              dense: true,
+                              contentPadding: EdgeInsets.zero,
+                              title: Text(
+                                '${model.label} (~${model.approxSizeMB} MB)',
+                              ),
+                              subtitle: Text(model.license),
+                              trailing: TextButton(
+                                onPressed: busy
+                                    ? null
+                                    : () async {
+                                        FocusScope.of(context).unfocus();
+                                        await runUrlInstall(
+                                          model.installUrl!,
+                                          modelType: model.modelType,
+                                        );
+                                      },
+                                child: const Text('Download'),
+                              ),
+                            )
+                          else
+                            Text(
+                              '${model.label}: ${model.notes}',
+                              style: const TextStyle(
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
                         const SizedBox(height: 12),
                         OutlinedButton.icon(
                           onPressed: busy
@@ -286,129 +443,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                   // Dismiss the keyboard before the async
                                   // preflight + nested confirmation dialog so
                                   // no focused field survives a route pop.
+                                  // Custom URLs install as general type; the
+                                  // verified catalog entries below pass their
+                                  // own family type.
                                   FocusScope.of(context).unfocus();
-                                  final url = urlController.text.trim();
-                                  setDialogState(() => error = null);
-                                  final preflight =
-                                      await ModelInstallPreflight.networkUrl(url);
-                                  if (!context.mounted) return;
-                                  if (!preflight.valid) {
-                                    setDialogState(
-                                      () => error = preflight.reason,
-                                    );
-                                    return;
-                                  }
-                                  final confirmed = await showDialog<bool>(
-                                    context: context,
-                                    builder: (confirmationContext) {
-                                      final size = preflight.sizeBytes == null
-                                          ? 'Unknown (server did not provide Content-Length)'
-                                          : _formatBytes(preflight.sizeBytes!);
-                                      final fileName = Uri.parse(url)
-                                          .pathSegments
-                                          .last;
-                                      return AlertDialog(
-                                        title: const Text('Confirm model download'),
-                                        content: SingleChildScrollView(
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.stretch,
-                                            children: [
-                                              const Icon(
-                                                Icons.download_for_offline_outlined,
-                                                size: 42,
-                                              ),
-                                              const SizedBox(height: 12),
-                                              Text(
-                                                fileName.isEmpty
-                                                    ? 'LiteRT-LM model'
-                                                    : fileName,
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 12),
-                                              _DownloadDetail(
-                                                icon: Icons.data_usage,
-                                                label: 'Estimated download size',
-                                                value: size,
-                                              ),
-                                              _DownloadDetail(
-                                                icon: Icons.storage_outlined,
-                                                label: 'Model storage currently used',
-                                                value: storage == null
-                                                    ? 'Unavailable'
-                                                    : '${storage!.totalSizeMB.toStringAsFixed(1)} MB in ${storage!.totalFiles} file(s)',
-                                              ),
-                                              _DownloadDetail(
-                                                icon: Icons.smart_toy_outlined,
-                                                label: 'Active model',
-                                                value: _modelManager.activeModelName ??
-                                                    'None',
-                                              ),
-                                              const SizedBox(height: 12),
-                                              const Text(
-                                                'This action downloads model data to this device. Wi-Fi is recommended; mobile data and additional storage may be used.',
-                                              ),
-                                              if (preflight.warning != null) ...[
-                                                const SizedBox(height: 8),
-                                                Text(
-                                                  preflight.warning!,
-                                                  style: const TextStyle(
-                                                    color: Colors.orange,
-                                                  ),
-                                                ),
-                                              ],
-                                            ],
-                                          ),
-                                        ),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () async {
-                                              FocusScope.of(confirmationContext)
-                                                  .unfocus();
-                                              await Future<void>.delayed(
-                                                const Duration(
-                                                    milliseconds: 300),
-                                              );
-                                              if (confirmationContext.mounted) {
-                                                Navigator.pop(
-                                                    confirmationContext, false);
-                                              }
-                                            },
-                                            child: const Text('Cancel'),
-                                          ),
-                                          FilledButton.icon(
-                                            onPressed: () async {
-                                              FocusScope.of(confirmationContext)
-                                                  .unfocus();
-                                              await Future<void>.delayed(
-                                                const Duration(
-                                                    milliseconds: 300),
-                                              );
-                                              if (confirmationContext.mounted) {
-                                                Navigator.pop(
-                                                    confirmationContext, true);
-                                              }
-                                            },
-                                            icon: const Icon(Icons.download),
-                                            label: const Text('Download'),
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  );
-                                  if (confirmed == true && context.mounted) {
-                                    await install(
-                                      () => _modelManager.installFromNetwork(
-                                        url: url,
-                                        onProgress: (value) => setDialogState(
-                                          () => progress = value,
-                                        ),
-                                      ),
-                                    );
-                                  }
+                                  await runUrlInstall(
+                                      urlController.text.trim());
                                 },
                           child: const Text('Download and install'),
                         ),
