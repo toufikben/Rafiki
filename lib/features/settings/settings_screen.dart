@@ -11,6 +11,11 @@ import '../../services/audio_service.dart';
 import '../../services/floating_service.dart';
 import 'legal_information_screen.dart';
 
+/// CI build identifier shown in Settings > Version. Injected with
+/// `--dart-define=RAFIQ_BUILD_TAG=<short-sha>` by the debug workflow so a
+/// screenshot proves exactly which commit is installed on a device.
+const _buildTag = String.fromEnvironment('RAFIQ_BUILD_TAG', defaultValue: 'dev');
+
 String _formatBytes(int bytes) {
   if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(0)} KB';
   if (bytes < 1024 * 1024 * 1024) {
@@ -118,7 +123,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const ListTile(
             leading: Icon(Icons.info_outline),
             title: Text('Version'),
-            subtitle: Text('1.0.0'),
+            // Build tag identifies the exact CI commit on-device so a
+            // screenshot proves which build is installed. Injected via
+            // --dart-define=RAFIQ_BUILD_TAG in CI; 'dev' for local builds.
+            subtitle: Text('1.0.0 ($_buildTag)'),
           ),
         ],
       ),
@@ -357,20 +365,32 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                         ),
                                         actions: [
                                           TextButton(
-                                            onPressed: () {
+                                            onPressed: () async {
                                               FocusScope.of(confirmationContext)
                                                   .unfocus();
-                                              Navigator.pop(
-                                                  confirmationContext, false);
+                                              await Future<void>.delayed(
+                                                const Duration(
+                                                    milliseconds: 300),
+                                              );
+                                              if (confirmationContext.mounted) {
+                                                Navigator.pop(
+                                                    confirmationContext, false);
+                                              }
                                             },
                                             child: const Text('Cancel'),
                                           ),
                                           FilledButton.icon(
-                                            onPressed: () {
+                                            onPressed: () async {
                                               FocusScope.of(confirmationContext)
                                                   .unfocus();
-                                              Navigator.pop(
-                                                  confirmationContext, true);
+                                              await Future<void>.delayed(
+                                                const Duration(
+                                                    milliseconds: 300),
+                                              );
+                                              if (confirmationContext.mounted) {
+                                                Navigator.pop(
+                                                    confirmationContext, true);
+                                              }
                                             },
                                             icon: const Icon(Icons.download),
                                             label: const Text('Download'),
@@ -438,13 +458,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 actions: [
                   TextButton(
-                    onPressed: () {
-                      // Dismiss the keyboard before popping: tearing down
-                      // this route with a focused field trips
+                    onPressed: () async {
+                      // Dismiss the keyboard AND let focus/keyboard teardown
+                      // settle before popping: unfocus alone is async (the
+                      // platform keyboard + MediaQuery insets animate out
+                      // over frames), and tearing down this route with a
+                      // still-registered dependent trips
                       // InheritedElement.debugDeactivated (_dependents not
-                      // empty) and red-screens the app.
+                      // empty) and red-screens the app. Verified on-device:
+                      // unfocus-without-settle still crashed.
                       FocusScope.of(dialogContext).unfocus();
-                      Navigator.pop(dialogContext);
+                      await Future<void>.delayed(
+                        const Duration(milliseconds: 300),
+                      );
+                      if (dialogContext.mounted) {
+                        Navigator.pop(dialogContext);
+                      }
                     },
                     child: const Text('Close'),
                   ),
