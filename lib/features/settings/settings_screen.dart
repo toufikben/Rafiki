@@ -252,7 +252,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               ? null
                               : () {
                                   FocusScope.of(context).unfocus();
-                                  return install(
+                                  install(
                                     () => _modelManager.installFromFile(
                                       path: pathController.text.trim(),
                                       onProgress: (value) => setDialogState(
