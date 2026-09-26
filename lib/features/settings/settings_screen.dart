@@ -224,6 +224,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           onPressed: busy
                               ? null
                               : () async {
+                                  // Close the keyboard before opening system
+                                  // UI so focus teardown cannot race the
+                                  // dialog route.
+                                  FocusScope.of(context).unfocus();
                                   final files = await FilePicker.pickFiles(
                                     type: FileType.custom,
                                     allowedExtensions: const ['litertlm'],
@@ -246,14 +250,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ElevatedButton(
                           onPressed: busy || pathController.text.trim().isEmpty
                               ? null
-                              : () => install(
+                              : () {
+                                  FocusScope.of(context).unfocus();
+                                  return install(
                                     () => _modelManager.installFromFile(
                                       path: pathController.text.trim(),
                                       onProgress: (value) => setDialogState(
                                         () => progress = value,
                                       ),
                                     ),
-                                  ),
+                                  );
+                                },
                           child: const Text('Install local file'),
                         ),
                         TextField(
@@ -268,6 +275,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           onPressed: busy || urlController.text.trim().isEmpty
                               ? null
                               : () async {
+                                  // Dismiss the keyboard before the async
+                                  // preflight + nested confirmation dialog so
+                                  // no focused field survives a route pop.
+                                  FocusScope.of(context).unfocus();
                                   final url = urlController.text.trim();
                                   setDialogState(() => error = null);
                                   final preflight =
@@ -346,13 +357,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                         ),
                                         actions: [
                                           TextButton(
-                                            onPressed: () =>
-                                                Navigator.pop(confirmationContext, false),
+                                            onPressed: () {
+                                              FocusScope.of(confirmationContext)
+                                                  .unfocus();
+                                              Navigator.pop(
+                                                  confirmationContext, false);
+                                            },
                                             child: const Text('Cancel'),
                                           ),
                                           FilledButton.icon(
-                                            onPressed: () =>
-                                                Navigator.pop(confirmationContext, true),
+                                            onPressed: () {
+                                              FocusScope.of(confirmationContext)
+                                                  .unfocus();
+                                              Navigator.pop(
+                                                  confirmationContext, true);
+                                            },
                                             icon: const Icon(Icons.download),
                                             label: const Text('Download'),
                                           ),
@@ -419,7 +438,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 actions: [
                   TextButton(
-                    onPressed: () => Navigator.pop(dialogContext),
+                    onPressed: () {
+                      // Dismiss the keyboard before popping: tearing down
+                      // this route with a focused field trips
+                      // InheritedElement.debugDeactivated (_dependents not
+                      // empty) and red-screens the app.
+                      FocusScope.of(dialogContext).unfocus();
+                      Navigator.pop(dialogContext);
+                    },
                     child: const Text('Close'),
                   ),
                 ],

@@ -306,6 +306,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               final text = controller.text.trim();
               if (text.isEmpty || loading) return;
               controller.clear();
+              // Dismiss the keyboard with every send: the sheet must never
+              // be dismissed (drag/back) with a focused field, which trips
+              // InheritedElement.debugDeactivated and red-screens the app.
+              FocusScope.of(context).unfocus();
               setSheetState(() {
                 messages.add({'role': 'user', 'text': text});
                 loading = true;
