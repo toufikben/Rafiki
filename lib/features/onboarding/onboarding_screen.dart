@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/pet_species.dart';
 import '../../providers/pet_provider.dart';
+import '../settings/legal_information_screen.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -44,6 +45,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               TextField(
                 controller: _nameController,
                 decoration: const InputDecoration(
+                  labelText: 'Pet name',
                   hintText: 'Give them a name...',
                   border: OutlineInputBorder(),
                 ),
@@ -54,6 +56,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 child: const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                   child: Text('Start'),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const LegalInformationScreen(),
+                  ),
+                ),
+                child: const Text(
+                  'Privacy: all data stays on this device. Read the privacy policy and terms.',
+                  textAlign: TextAlign.center,
                 ),
               ),
             ],
@@ -76,23 +90,28 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   Widget _speciesOption(String species) {
     final selected = _selectedSpecies == species;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedSpecies = species),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: selected
-              ? const Color(0xFFFFB870).withValues(alpha: 0.3)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: selected ? const Color(0xFFFFB870) : Colors.white24,
-            width: 2,
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: 'Choose ${PetSpecies.emoji(species)} $species',
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedSpecies = species),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: selected
+                ? const Color(0xFFFFB870).withValues(alpha: 0.3)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: selected ? const Color(0xFFFFB870) : Colors.white24,
+              width: 2,
+            ),
           ),
-        ),
-        child: Text(
-          PetSpecies.emoji(species),
-          style: const TextStyle(fontSize: 40),
+          child: Text(
+            PetSpecies.emoji(species),
+            style: const TextStyle(fontSize: 40),
+          ),
         ),
       ),
     );

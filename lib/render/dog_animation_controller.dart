@@ -103,6 +103,39 @@ class AnimationSelection {
   final String? resumeClip;
 }
 
+/// Normalizes an authored clip name for lookup: trims whitespace and maps
+/// case-insensitive matches back to the canonical contract spelling.
+/// Returns the trimmed input unchanged when it matches nothing known.
+String normalizeDogClipName(String name) {
+  final trimmed = name.trim();
+  if (trimmed.isEmpty) return trimmed;
+  for (final clip in requiredDogAnimationClips) {
+    if (clip.toLowerCase() == trimmed.toLowerCase()) return clip;
+  }
+  return trimmed;
+}
+
+/// Resolves a requested clip against the clips a GLB actually exposes,
+/// tolerating case/whitespace differences between exporters (e.g. Blender
+/// vs. Mixamo-style names). Exact matches win; otherwise the first
+/// case-insensitive match is returned, else null.
+String? resolveDogClipName(Iterable<String> available, String requested) {
+  final trimmed = requested.trim();
+  if (trimmed.isEmpty) return null;
+  for (final name in available) {
+    if (name == trimmed) return name;
+  }
+  final canonical = normalizeDogClipName(trimmed);
+  for (final name in available) {
+    if (name == canonical) return name;
+  }
+  final lower = trimmed.toLowerCase();
+  for (final name in available) {
+    if (name.toLowerCase() == lower) return name;
+  }
+  return null;
+}
+
 /// The authored contract required by Batch 8. This list is intentionally
 /// separate from the prototype asset's currently available GLB animations.
 const requiredDogAnimationClips = <String>[

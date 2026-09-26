@@ -1,0 +1,47 @@
+[
+  {
+    "service": "GitHub",
+    "purpose": "branch push, PR, CI verification",
+    "why_required": "remote evidence + CI backend require repository access",
+    "account_required": true,
+    "existing_session": true,
+    "existing_credential": "present",
+    "required_permission": "repo + workflow scopes (least privilege)",
+    "required_plan": null,
+    "required_billing": false,
+    "user_action": null,
+    "automatable": true,
+    "status": "READY",
+    "next_step": "use gh CLI as configured"
+  },
+  {
+    "service": "OpenAI",
+    "purpose": "independent architecture/review/reasoning",
+    "why_required": "independent review cannot come from the implementer",
+    "account_required": true,
+    "existing_session": null,
+    "existing_credential": "present",
+    "required_permission": "API usage billing enabled",
+    "required_plan": "pay-as-you-go with credits",
+    "required_billing": true,
+    "user_action": null,
+    "automatable": false,
+    "status": "READY",
+    "next_step": "verify models.list + one structured call"
+  },
+  {
+    "service": "Google Play Console",
+    "purpose": "store listing, tracks, releases",
+    "why_required": "publishing and store metadata live in Play Console",
+    "account_required": true,
+    "existing_session": true,
+    "existing_credential": "present",
+    "required_permission": "developer account + app access + release permission",
+    "required_plan": "Google Play developer account (one-time registration)",
+    "required_billing": false,
+    "user_action": null,
+    "automatable": false,
+    "status": "VERIFICATION_REQUIRED",
+    "next_step": "verify app access + permissions"
+  }
+]

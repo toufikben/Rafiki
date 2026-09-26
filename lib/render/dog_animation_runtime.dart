@@ -1,5 +1,7 @@
 import 'package:flutter_scene/scene.dart';
 
+import 'dog_animation_controller.dart';
+
 /// Binds authored GLB animations when they exist and remains a no-op for the
 /// current static prototype asset. The scene can therefore adopt a rigged GLB
 /// without replacing the fallback path or changing the secondary-motion layer.
@@ -23,15 +25,19 @@ class DogAnimationRuntime extends Component {
         
       _clips[animation.name] = clip;
     }
-    if (_clips.containsKey('Idle')) select('Idle');
+    final initial = resolveDogClipName(_clips.keys, 'Idle');
+    if (initial != null) select(initial);
   }
 
   /// Selects an authored clip by name. Missing clips are ignored so the
   /// prototype GLB continues to render while the final rig is in production.
+  /// Name matching tolerates exporter case/whitespace differences.
   void select(String name, {bool? loop}) {
-    final next = _clips[name];
+    final resolved = resolveDogClipName(_clips.keys, name);
+    if (resolved == null) return;
+    final next = _clips[resolved];
     if (next == null || identical(next, _active)) return;
-    next.loop = loop ?? _isLooping(name);
+    next.loop = loop ?? _isLooping(normalizeDogClipName(resolved));
     next.replay();
     next.weight = 0;
     _incoming = next;

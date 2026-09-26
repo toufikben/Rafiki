@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../ai/learning_profile.dart';
 import '../../core/constants/pet_species.dart';
 import '../../core/models/pet_state.dart';
+import '../../core/utils/diag_log.dart';
+import '../../core/utils/keyboard_settle.dart';
 import '../../engine/behavior_engine.dart';
 import '../../providers/pet_provider.dart';
 import '../../render/pet_painter.dart';
@@ -293,9 +295,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 
   Future<void> _openChat() async {
+    DiagLog.event('chat: opened');
     final controller = TextEditingController();
     final messages = <Map<String, String>>[];
     var loading = false;
+    var canClose = false;
+    var closing = false;
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -305,7 +310,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             Future<void> send() async {
               final text = controller.text.trim();
               if (text.isEmpty || loading) return;
+              DiagLog.event('chat: send');
               controller.clear();
+              // Dismiss the keyboard with every send: the sheet must never
+              // be dismissed (drag/back) with a focused field, which trips
+              // InheritedElement.debugDeactivated and red-screens the app.
+              FocusScope.of(context).unfocus();
               setSheetState(() {
                 messages.add({'role': 'user', 'text': text});
                 loading = true;
@@ -320,14 +330,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               });
             }
 
-            return SafeArea(
-              child: Padding(
-                padding: EdgeInsets.only(
-                  left: 16,
-                  right: 16,
-                  top: 12,
-                  bottom: MediaQuery.viewInsetsOf(context).bottom + 12,
-                ),
+            // System back and drag-dismiss also tear down this route: veto
+            // the pop, settle the keyboard first (same red-screen guard as
+            // the model dialog), then close programmatically.
+            return PopScope(
+              canPop: canClose,
+              onPopInvokedWithResult: (didPop, _) async {
+                if (didPop || closing) return;
+                closing = true;
+                DiagLog.event('chat: dismiss requested');
+                final settled = await settleKeyboardForPop(context);
+                if (!settled || !context.mounted) return;
+                setSheetState(() => canClose = true);
+                DiagLog.event('chat: closing');
+                Navigator.pop(context);
+              },
+              child: SafeArea(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    top: 12,
+                    bottom: MediaQuery.viewInsetsOf(context).bottom + 12,
+                  ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -335,7 +360,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       'Local pet chat',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'On-device only. Works offline; replies improve when a local model is installed from Settings.',
+                      textAlign: TextAlign.center,
+                    ),
                     const SizedBox(height: 8),
+                    if (messages.isEmpty && !loading)
+                      const Text(
+                        'Say hello to your pet to begin.',
+                        textAlign: TextAlign.center,
+                      ),
+                    if (messages.isEmpty && !loading) const SizedBox(height: 8),
                     ConstrainedBox(
                       constraints: const BoxConstraints(maxHeight: 280),
                       child: ListView(
@@ -394,32 +430,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   ],
                 ),
               ),
-            );
+            ),
+          );
           },
         );
       },
     );
+    DiagLog.event('chat: closed');
     controller.dispose();
   }
 
   Widget _stat(String emoji, double value) {
-    return Column(
-      children: [
-        Text(emoji, style: const TextStyle(fontSize: 20)),
-        const SizedBox(height: 4),
-        SizedBox(
-          width: 40,
-          child: LinearProgressIndicator(
-            value: value,
-            backgroundColor: Colors.white12,
-            color: value > 0.5
-                ? Colors.green
-                : value > 0.2
-                    ? Colors.orange
-                    : Colors.red,
+    final percent = (value.clamp(0.0, 1.0) * 100).round();
+    return Semantics(
+      label: '$emoji $percent percent',
+      value: '$percent%',
+      child: Column(
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 20)),
+          const SizedBox(height: 4),
+          SizedBox(
+            width: 40,
+            child: LinearProgressIndicator(
+              value: value,
+              backgroundColor: Colors.white12,
+              color: value > 0.5
+                  ? Colors.green
+                  : value > 0.2
+                      ? Colors.orange
+                      : Colors.red,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

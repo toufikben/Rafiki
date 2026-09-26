@@ -1,0 +1,153 @@
+{
+  "project": "C:\\Users\\Administrator\\Documents\\Default Project\\rafiki",
+  "created_at": "2026-09-25T21:42:19.521Z",
+  "categories": {
+    "language": {
+      "required": true,
+      "optional": false,
+      "selected": null,
+      "reason": "undetected; discovery will confirm",
+      "verification_status": "missing"
+    },
+    "framework": {
+      "required": false,
+      "optional": true,
+      "selected": null,
+      "reason": "none required by task",
+      "verification_status": "na"
+    },
+    "build": {
+      "required": false,
+      "optional": true,
+      "selected": null,
+      "reason": "none",
+      "verification_status": "na"
+    },
+    "ide_cli": {
+      "required": true,
+      "optional": false,
+      "selected": "OpenCode CLI 1.18.x",
+      "reason": "implementation engine transport",
+      "verification_status": "verified"
+    },
+    "testing": {
+      "required": true,
+      "optional": false,
+      "selected": "project test runner",
+      "reason": "quality gate requirement",
+      "verification_status": "unverified"
+    },
+    "static_analysis": {
+      "required": false,
+      "optional": true,
+      "selected": "none configured",
+      "reason": "code quality",
+      "verification_status": "unverified"
+    },
+    "security": {
+      "required": false,
+      "optional": true,
+      "selected": "reviewer-led audit + intent skill (Android)",
+      "reason": "no PII/secrets handling by default",
+      "verification_status": "unverified"
+    },
+    "emulator": {
+      "required": false,
+      "optional": true,
+      "selected": null,
+      "reason": "selected per backend ranking below",
+      "verification_status": "unverified"
+    },
+    "device": {
+      "required": false,
+      "optional": true,
+      "selected": null,
+      "reason": "adb scan at lab time",
+      "verification_status": "unverified"
+    },
+    "browser": {
+      "required": false,
+      "optional": true,
+      "selected": null,
+      "reason": "no web task detected",
+      "verification_status": "na"
+    },
+    "ci": {
+      "required": false,
+      "optional": true,
+      "selected": "GitHub Actions (gradle build)",
+      "reason": "remote verification where a repo exists",
+      "verification_status": "unverified"
+    },
+    "github": {
+      "required": true,
+      "optional": false,
+      "selected": "gh CLI (authenticated)",
+      "reason": "branch/push/CI verification",
+      "verification_status": "verified"
+    },
+    "backend": {
+      "required": false,
+      "optional": true,
+      "selected": null,
+      "reason": "none detected",
+      "verification_status": "na"
+    },
+    "database": {
+      "required": false,
+      "optional": true,
+      "selected": null,
+      "reason": "none detected",
+      "verification_status": "na"
+    },
+    "analytics": {
+      "required": false,
+      "optional": true,
+      "selected": null,
+      "reason": "none detected",
+      "verification_status": "na"
+    },
+    "billing": {
+      "required": false,
+      "optional": true,
+      "selected": null,
+      "reason": "no billing in scope",
+      "verification_status": "unverified"
+    },
+    "ads": {
+      "required": false,
+      "optional": true,
+      "selected": null,
+      "reason": "no ads in scope",
+      "verification_status": "na"
+    },
+    "aso": {
+      "required": false,
+      "optional": true,
+      "selected": null,
+      "reason": "only for store-listing tasks",
+      "verification_status": "na"
+    },
+    "store_assets": {
+      "required": false,
+      "optional": true,
+      "selected": null,
+      "reason": "only for store-listing tasks",
+      "verification_status": "na"
+    },
+    "research": {
+      "required": true,
+      "optional": false,
+      "selected": "research engine + web-search capability",
+      "reason": "evidence-backed decisions",
+      "verification_status": "verified"
+    },
+    "monitoring": {
+      "required": false,
+      "optional": true,
+      "selected": "logcat + CI artifacts",
+      "reason": "post-run observability",
+      "verification_status": "unverified"
+    }
+  }
+}

@@ -23,13 +23,19 @@ class DogSecondaryMotion extends Component {
   final double intensity;
 
   static const Map<String, List<String>> _aliases = <String, List<String>>{
-    'Chest': <String>['Chest', 'Spine_02', 'chest'],
-    'Spine': <String>['Spine', 'Spine_01', 'spine'],
-    'Ear_L': <String>['Ear_L', 'Ear.L', 'ear_l', 'LeftEar'],
-    'Ear_R': <String>['Ear_R', 'Ear.R', 'ear_r', 'RightEar'],
-    'Tail_01': <String>['Tail_01', 'Tail', 'tail'],
-    'Tail_02': <String>['Tail_02', 'Tail.Mid', 'TailTip'],
-    'Tail_03': <String>['Tail_03', 'Tail.End', 'TailTipEnd'],
+    'Chest': <String>['Chest', 'Spine_02', 'spine.002', 'chest'],
+    'Spine': <String>['Spine', 'Spine_01', 'spine', 'spine.001'],
+    'Ear_L': <String>['Ear_L', 'Ear.L', 'ear_l', 'EarL', 'LeftEar'],
+    'Ear_R': <String>['Ear_R', 'Ear.R', 'ear_r', 'EarR', 'RightEar'],
+    'Tail_01': <String>['Tail_01', 'Tail', 'tail', 'Tail01', 'tail.001'],
+    'Tail_02': <String>['Tail_02', 'Tail.Mid', 'TailTip', 'Tail02', 'tail.002'],
+    'Tail_03': <String>[
+      'Tail_03',
+      'Tail.End',
+      'TailTipEnd',
+      'Tail03',
+      'tail.003',
+    ],
   };
 
   final Map<String, Node> _joints = <String, Node>{};

@@ -27,6 +27,19 @@ class ModelPreflightResult {
 class ModelInstallPreflight {
   static const int minimumModelBytes = 1024 * 1024;
 
+  /// CDN hosts whose signed redirect targets legitimately lose the
+  /// `.litertlm` suffix (e.g. Hugging Face `/resolve/` links bounce to
+  /// these). The original user-supplied link must still end in `.litertlm`;
+  /// only the final hop may land here, and only over HTTP(S).
+  static const trustedModelCdnHosts = <String>{
+    'cdn-lfs.huggingface.co',
+    'cdn-lfs.hf.co',
+    'cas-bridge.xethub.huggingface.co',
+    // Observed live on-device 2026-09-26: Hugging Face `/resolve/` links
+    // for the verified catalog builds bounce here.
+    'us.aws.cdn.co',
+  };
+
   static Future<ModelPreflightResult> localFile(
     String path, {
     int minimumBytes = minimumModelBytes,
@@ -80,11 +93,17 @@ class ModelInstallPreflight {
       final finalUri = response.redirects.isEmpty
           ? uri
           : response.redirects.last.location;
-      if (!_isAllowedModelUri(finalUri)) {
+      final finalIsHttps =
+          finalUri.scheme == 'https' || finalUri.scheme == 'http';
+      final finalOk = _isAllowedModelUri(finalUri) ||
+          (finalIsHttps &&
+              trustedModelCdnHosts.contains(finalUri.host.toLowerCase()));
+      if (!finalOk) {
         return ModelPreflightResult(
           valid: false,
           source: value,
-          reason: 'The model URL redirected to a non-HTTP(S) .litertlm URL.',
+          reason: 'The model URL redirected to ${finalUri.host}, which is '
+              'neither a .litertlm file nor a trusted model CDN.',
         );
       }
       final size = response.contentLength > 0 ? response.contentLength : null;

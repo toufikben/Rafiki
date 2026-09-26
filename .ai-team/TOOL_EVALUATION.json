@@ -1,0 +1,95 @@
+[
+  {
+    "name": "node",
+    "source": "official",
+    "documentation": "https://nodejs.org",
+    "license": "varies (see docs)",
+    "maintenance": "UNKNOWN",
+    "last_update": "UNKNOWN",
+    "security_reputation": "UNKNOWN",
+    "known_vulnerabilities": "UNKNOWN",
+    "compatibility": {
+      "windows": "verified",
+      "android": "UNKNOWN",
+      "opencode": "UNKNOWN",
+      "openai": "UNKNOWN"
+    },
+    "automation_capability": "Node.js runtime for the orchestrator",
+    "offline_capability": "UNKNOWN",
+    "network_requirements": "UNKNOWN",
+    "cost": "free",
+    "rate_limits": "UNKNOWN",
+    "installation_complexity": "UNKNOWN",
+    "maintenance_burden": "UNKNOWN",
+    "risk": "low",
+    "replacements": [],
+    "verdict": "adopt",
+    "reason": "verified present",
+    "evidence": [
+      "node --version -> v24.19.0\r"
+    ],
+    "evaluated_at": "2026-09-25T21:42:16.876Z"
+  },
+  {
+    "name": "opencode-cli",
+    "source": "official",
+    "documentation": "https://opencode.ai",
+    "license": "UNKNOWN",
+    "maintenance": "UNKNOWN",
+    "last_update": "UNKNOWN",
+    "security_reputation": "UNKNOWN",
+    "known_vulnerabilities": "UNKNOWN",
+    "compatibility": {
+      "windows": "verified",
+      "android": "UNKNOWN",
+      "opencode": "UNKNOWN",
+      "openai": "UNKNOWN"
+    },
+    "automation_capability": "implementation engine transport",
+    "offline_capability": "UNKNOWN",
+    "network_requirements": "UNKNOWN",
+    "cost": "free",
+    "rate_limits": "UNKNOWN",
+    "installation_complexity": "UNKNOWN",
+    "maintenance_burden": "UNKNOWN",
+    "risk": "low",
+    "replacements": [],
+    "verdict": "adopt",
+    "reason": "verified present",
+    "evidence": [
+      "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\opencode.cmd --version -> 1.18.32"
+    ],
+    "evaluated_at": "2026-09-25T21:42:19.180Z"
+  },
+  {
+    "name": "gh",
+    "source": "official",
+    "documentation": "https://cli.github.com",
+    "license": "varies (see docs)",
+    "maintenance": "UNKNOWN",
+    "last_update": "UNKNOWN",
+    "security_reputation": "UNKNOWN",
+    "known_vulnerabilities": "UNKNOWN",
+    "compatibility": {
+      "windows": "verified",
+      "android": "UNKNOWN",
+      "opencode": "UNKNOWN",
+      "openai": "UNKNOWN"
+    },
+    "automation_capability": "github automation",
+    "offline_capability": "UNKNOWN",
+    "network_requirements": "UNKNOWN",
+    "cost": "free",
+    "rate_limits": "UNKNOWN",
+    "installation_complexity": "UNKNOWN",
+    "maintenance_burden": "UNKNOWN",
+    "risk": "low",
+    "replacements": [],
+    "verdict": "adopt",
+    "reason": "verified present",
+    "evidence": [
+      "gh --version -> gh version 2.100.0 (2026-09-03)"
+    ],
+    "evaluated_at": "2026-09-25T21:42:19.521Z"
+  }
+]

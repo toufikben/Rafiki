@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +9,7 @@ import 'package:flutter_gemma_litertlm/flutter_gemma_litertlm.dart';
 import 'app.dart';
 import 'core/models/behavior_type.dart';
 import 'core/models/pet_state.dart';
+import 'core/utils/error_log.dart';
 import 'data/database.dart';
 import 'render/pet_painter.dart';
 import 'services/audio_service.dart';
@@ -14,6 +17,10 @@ import 'services/purchase_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    unawaited(recordFrameworkError(details));
+  };
   try {
     await FlutterGemma.initialize(
       inferenceEngines: [const LiteRtLmEngine()],

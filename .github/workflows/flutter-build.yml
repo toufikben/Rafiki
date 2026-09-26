@@ -52,7 +52,9 @@ jobs:
         run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Build debug APK
-        run: flutter build apk --debug
+        # Stamp the short commit SHA into Settings > Version so a device
+        # screenshot proves exactly which commit an installed APK came from.
+        run: flutter build apk --debug --dart-define=RAFIQ_BUILD_TAG=${GITHUB_SHA::7}
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
