@@ -6,10 +6,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../ai/local_model_manager.dart';
 import '../../ai/model_install_preflight.dart';
 import '../../ai/recommended_models.dart';
+import '../../core/utils/diag_log.dart';
 import '../../core/utils/keyboard_settle.dart';
 import '../../data/database.dart';
 import '../../services/audio_service.dart';
 import '../../services/floating_service.dart';
+import '../diagnostics/diagnostics_screen.dart';
 import 'legal_information_screen.dart';
 
 /// CI build identifier shown in Settings > Version. Injected with
@@ -131,12 +133,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             // --dart-define=RAFIQ_BUILD_TAG in CI; 'dev' for local builds.
             subtitle: Text('1.0.0 ($_buildTag)'),
           ),
+          ListTile(
+            leading: const Icon(Icons.bug_report_outlined),
+            title: const Text('Diagnostics'),
+            subtitle:
+                const Text('Copyable on-device report for bug reports'),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const DiagnosticsScreen(),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
   Future<void> _showModelManager() async {
+    DiagLog.event('model-dialog: opening');
     final pathController = TextEditingController();
     final urlController = TextEditingController();
     var installed = <String>[];
@@ -194,8 +208,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 });
                 try {
                   await action();
+                  DiagLog.event('model-install: finished');
                   await refresh();
                 } catch (e) {
+                  DiagLog.event('model-install: failed');
                   if (context.mounted) setDialogState(() => error = '$e');
                 } finally {
                   if (context.mounted) setDialogState(() => busy = false);
@@ -213,6 +229,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 // Block double-taps during the preflight gap: a stacked
                 // second confirmation dialog corrupts the overlay.
                 if (busy) return;
+                DiagLog.event('model-install: start $url');
                 var confirmClosing = false;
                 setDialogState(() {
                   busy = true;
@@ -526,6 +543,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       // same route twice and corrupt the overlay.
                       if (dialogClosing) return;
                       dialogClosing = true;
+                      DiagLog.event('model-dialog: Close tapped');
                       if (await settleKeyboardForPop(dialogContext) &&
                           dialogContext.mounted) {
                         Navigator.pop(dialogContext);
@@ -540,6 +558,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         },
       );
     } finally {
+      DiagLog.event('model-dialog: closed');
       pathController.dispose();
       urlController.dispose();
     }

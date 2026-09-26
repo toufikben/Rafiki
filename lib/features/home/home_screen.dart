@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../ai/learning_profile.dart';
 import '../../core/constants/pet_species.dart';
 import '../../core/models/pet_state.dart';
+import '../../core/utils/diag_log.dart';
 import '../../core/utils/keyboard_settle.dart';
 import '../../engine/behavior_engine.dart';
 import '../../providers/pet_provider.dart';
@@ -294,6 +295,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 
   Future<void> _openChat() async {
+    DiagLog.event('chat: opened');
     final controller = TextEditingController();
     final messages = <Map<String, String>>[];
     var loading = false;
@@ -308,6 +310,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             Future<void> send() async {
               final text = controller.text.trim();
               if (text.isEmpty || loading) return;
+              DiagLog.event('chat: send');
               controller.clear();
               // Dismiss the keyboard with every send: the sheet must never
               // be dismissed (drag/back) with a focused field, which trips
@@ -335,9 +338,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               onPopInvokedWithResult: (didPop, _) async {
                 if (didPop || closing) return;
                 closing = true;
+                DiagLog.event('chat: dismiss requested');
                 final settled = await settleKeyboardForPop(context);
                 if (!settled || !context.mounted) return;
                 setSheetState(() => canClose = true);
+                DiagLog.event('chat: closing');
                 Navigator.pop(context);
               },
               child: SafeArea(
@@ -431,6 +436,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         );
       },
     );
+    DiagLog.event('chat: closed');
     controller.dispose();
   }
 

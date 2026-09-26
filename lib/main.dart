@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,42 +6,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:flutter_gemma_litertlm/flutter_gemma_litertlm.dart';
-import 'package:path_provider/path_provider.dart';
 import 'app.dart';
 import 'core/models/behavior_type.dart';
 import 'core/models/pet_state.dart';
+import 'core/utils/error_log.dart';
 import 'data/database.dart';
 import 'render/pet_painter.dart';
 import 'services/audio_service.dart';
 import 'services/purchase_service.dart';
-
-/// Best-effort framework-error recorder: some release-path teardown races
-/// (e.g. dialog pops with the keyboard mid-animation) only reproduce on
-/// real devices, where logcat rotates before the trace can be pulled. The
-/// latest error + stack is kept at `last_framework_error.txt` in the app
-/// documents directory and can be read over adb from a debug build:
-/// `adb shell "run-as com.rafiq.app cat files/last_framework_error.txt"`.
-Future<void> recordFrameworkError(FlutterErrorDetails details) async {
-  try {
-    final buffer = StringBuffer()
-      ..writeln(DateTime.now().toIso8601String())
-      ..writeln(details.exceptionAsString());
-    // Widget descriptions (the error-causing widget chain) are what turn
-    // a bare framework assert into an actionable fix.
-    final info = details.informationCollector?.call();
-    if (info != null) {
-      for (final line in info) {
-        buffer.writeln(line);
-      }
-    }
-    buffer.writeln(details.stack ?? '');
-    final dir = await getApplicationDocumentsDirectory();
-    final file = File('${dir.path}/last_framework_error.txt');
-    await file.writeAsString(buffer.toString());
-  } catch (_) {
-    // Recording must never break the error path itself.
-  }
-}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
